@@ -13,6 +13,8 @@ class Location:
         self.distr = distr
         self.initial = initial
         self.committed = committed
+        self.x = None
+        self.y = None
 
     def __str__(self):
         return LOCATION_FORMATTER.format(self.id)
