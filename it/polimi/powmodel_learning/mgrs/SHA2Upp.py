@@ -99,7 +99,16 @@ def generate_upp_model(learned_sha: SHA, trace_day: str):
         nta_tplt = nta_tplt.replace('**DISTR**', learned_distr_str)
 
     # Test Trace Management
-    print(get_timed_trace(trace_day))
+    tt = get_timed_trace(trace_day)
+    nta_tplt = nta_tplt.replace('**N_EVENTS**', '{};\n'.format(len(tt)))
+    tt_str = '{'
+    for i, tup in enumerate(tt):
+        tt_str += '{' + tup[1] + ',' + tup[0] + '}'
+        if i < len(tt) - 1:
+            tt_str += ','
+    tt_str += '};\n'
+    nta_tplt = nta_tplt.replace('**TRACE**', tt_str)
+    nta_tplt = nta_tplt.replace('**TIME_BOUND**', str(sum([int(tup[0]) for tup in tt])) + ';\n')
 
     with open(SAVE_PATH + SHA_NAME + '.xml', 'w') as new_model:
         new_model.write(nta_tplt)

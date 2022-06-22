@@ -1,6 +1,5 @@
 import configparser
-import os
-from typing import List
+from typing import List, Tuple
 
 from it.polimi.powmodel_learning.model.lshafeatures import FlowCondition, NormalDistribution, RealValuedVar
 from it.polimi.powmodel_learning.model.sigfeatures import Event, Timestamp
@@ -64,6 +63,16 @@ TEST_PATH = config['MODEL GENERATION']['TRACE_PATH']
 
 
 def get_timed_trace(input_file_name: str):
-    with open(TEST_PATH.format(input_file_name)) as input_file:
-        lines = input_file.readlines()
-        print(len(lines))
+    energy_cs.process_data(TEST_PATH.format(input_file_name))
+    tt = energy_cs.timed_traces[-1]
+    tt_tup: List[Tuple[str, str]] = []
+    for i, event in enumerate(tt.e):
+        e_sym = 'STOP' if event.symbol == 'i_0' else event.symbol.split('_')[1]
+        if i == 0:
+            diff_t = 0
+        else:
+            diff_t = ((tt.t[i].to_secs() - tt.t[0].to_secs()) - (tt.t[i - 1].to_secs() - tt.t[0].to_secs())) / 60
+
+        tt_tup.append((str(diff_t).replace('.0', ''), e_sym))
+
+    return tt_tup

@@ -107,5 +107,9 @@ m_1 = Machine();
 system p_1, m_1;
 </system>
 <queries>
+		<query>
+			<formula>simulate[&lt;=TAU]{m_1.w, m_1.P}</formula>
+			<comment></comment>
+		</query>
 </queries>
 </nta>

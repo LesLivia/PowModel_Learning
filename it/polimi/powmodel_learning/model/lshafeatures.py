@@ -80,6 +80,17 @@ class TimedTrace:
     def __len__(self):
         return len(self.t)
 
+    def __str__(self):
+        if len(self.e) == 0:
+            return EMPTY_STRING
+        else:
+            res = ''
+            for i, event in enumerate(self.e):
+                res += '<{}, {}>'.format(self.t[i].to_secs(), event.symbol)
+                if i < len(self.e):
+                    res += ','
+            return res
+
 
 class Trace:
     def __init__(self, events: List[Event] = None, tt: TimedTrace = None):
