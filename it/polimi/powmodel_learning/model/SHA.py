@@ -20,9 +20,23 @@ class Location:
     def __hash__(self):
         return hash(str(self))
 
+    @staticmethod
+    def parse_loc(line: str):
+        name = line.split(' ')[0].replace('\t', '')
+        l_id = int(name.split('_')[1]) if name != '__init__' else 999
+        label = line.split('<br/><b>')[1].replace('</b></FONT>>]\n', '')
+        if name != '__init__':
+            flow = int(label.split(', ')[0].replace('f_', ''))
+            distr = int(label.split(', ')[1].replace('D_', ''))
+        else:
+            flow = None
+            distr = None
+
+        return Location(l_id, name, flow, distr, name == '__init__')
+
 
 class Edge:
-    def __init__(self, start: Location, dest: Location, guard: str, sync: str, update: str):
+    def __init__(self, start: Location, dest: Location, sync: str, guard: str = None, update: str = None):
         self.start = start
         self.dest = dest
         self.guard = guard
@@ -34,6 +48,20 @@ class Edge:
 
     def __hash__(self):
         return hash(str(self))
+
+    @staticmethod
+    def parse_edge(line: str, locations: Set[Location]):
+        start_name = line.split(' -> ')[0].replace('\t', '')
+        dest_name = line.split(' -> ')[1].split(' [')[0]
+        start = [l for l in locations if l.name == start_name][0]
+        dest = [l for l in locations if l.name == dest_name][0]
+        sync_label = line.split('COLOR="#0067b0">')[1].replace('</FONT>>]\n', '')
+        if sync_label == 'i_0':
+            sync = sync_label + '?'
+        else:
+            sync = 'm[' + sync_label.split('_')[1] + ']?'
+
+        return Edge(start, dest, sync)
 
 
 class SHA:
