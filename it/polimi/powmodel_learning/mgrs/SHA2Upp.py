@@ -30,11 +30,10 @@ EDGE_TPLT = """<transition>\n\t<source ref="{}"/>\n\t<target ref="{}"/>
 \t<label kind="assignment" x="{}" y="{}">set_rate({}),set_vars({})</label>\n</transition>"""
 
 SAVE_PATH = config['MODEL VERIFICATION']['UPPAAL_MODEL_PATH']
+REPORT_PATH = config['RESULTS ANALYSIS']['REPORT_SAVE_PATH']
 
 
-def generate_upp_model(learned_sha: SHA):
-    LOGGER.info("Starting Uppaal model generation...")
-
+def sha_to_upp_tplt(learned_sha: SHA):
     with open(NTA_TPLT_PATH + MACHINE_TPLT_NAME, 'r') as machine_tplt:
         lines = machine_tplt.readlines()
         learned_sha_tplt = ''.join(lines)
@@ -70,12 +69,33 @@ def generate_upp_model(learned_sha: SHA):
                                         edge.dest.distr, s_speed)
         edges_str += new_edge_str
     learned_sha_tplt = learned_sha_tplt.replace('**TRANSITIONS**', edges_str)
+    return learned_sha_tplt
+
+
+def generate_upp_model(learned_sha: SHA):
+    LOGGER.info("Starting Uppaal model generation...")
+
+    # Learned SHA Management
+
+    learned_sha_tplt = sha_to_upp_tplt(learned_sha)
 
     with open(NTA_TPLT_PATH + NTA_TPLT_NAME, 'r') as nta_tplt:
         lines = nta_tplt.readlines()
         nta_tplt = ''.join(lines)
 
     nta_tplt = nta_tplt.replace('**MACHINE**', learned_sha_tplt)
+
+    # Learned Distributions Management
+    with open(REPORT_PATH.format(SHA_NAME), 'r') as report_file:
+        content = report_file.readlines()
+        start_i = content.index('--LEARNED DISTRIBUTIONS--\n')
+        end_i = content.index('--FINAL OBSERVATION TABLE--\n')
+        learned_distr_str = content[start_i:end_i]
+        learned_distr_str = [l for l in learned_distr_str if l.startswith('D_')]
+        learned_distr_str = [l.split('(')[1].replace(')\n', '') for l in learned_distr_str]
+        nta_tplt = nta_tplt.replace('**N_DISTR**', '{};\n'.format(len(learned_distr_str)))
+        learned_distr_str = '{' + ','.join(learned_distr_str) + '};\n'
+        nta_tplt = nta_tplt.replace('**DISTR**', learned_distr_str)
 
     with open(SAVE_PATH + SHA_NAME + '.xml', 'w') as new_model:
         new_model.write(nta_tplt)
