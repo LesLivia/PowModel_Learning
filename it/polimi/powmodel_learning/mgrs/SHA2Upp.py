@@ -2,6 +2,7 @@ import configparser
 import sys
 from it.polimi.powmodel_learning.utils.logger import Logger
 from it.polimi.powmodel_learning.model.SHA import SHA
+from it.polimi.powmodel_learning.mgrs.TraceParser import get_timed_trace
 
 config = configparser.ConfigParser()
 config.sections()
@@ -72,7 +73,7 @@ def sha_to_upp_tplt(learned_sha: SHA):
     return learned_sha_tplt
 
 
-def generate_upp_model(learned_sha: SHA):
+def generate_upp_model(learned_sha: SHA, trace_day: str):
     LOGGER.info("Starting Uppaal model generation...")
 
     # Learned SHA Management
@@ -96,6 +97,9 @@ def generate_upp_model(learned_sha: SHA):
         nta_tplt = nta_tplt.replace('**N_DISTR**', '{};\n'.format(len(learned_distr_str)))
         learned_distr_str = '{' + ','.join(learned_distr_str) + '};\n'
         nta_tplt = nta_tplt.replace('**DISTR**', learned_distr_str)
+
+    # Test Trace Management
+    print(get_timed_trace(trace_day))
 
     with open(SAVE_PATH + SHA_NAME + '.xml', 'w') as new_model:
         new_model.write(nta_tplt)

@@ -16,12 +16,13 @@ config.sections()
 
 SHA_PATH = config['MODEL GENERATION']['SHA_SAVE_PATH']
 SHA_NAME = sys.argv[1]
+TRACE_DAY = sys.argv[2]
 
 # Parse .dot file
 learned_sha = dot2upp.parse_sha(SHA_PATH.format(SHA_NAME))
 
 # Convert to Uppaal model
-sha2upp.generate_upp_model(learned_sha)
+sha2upp.generate_upp_model(learned_sha, TRACE_DAY)
 
 # Run Verification
 
