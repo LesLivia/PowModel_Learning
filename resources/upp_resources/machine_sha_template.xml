@@ -1,0 +1,22 @@
+<template>
+<name>Machine</name>
+<declaration>
+double rate = 0.0;
+
+double P = 0.0;
+double w = 0.0;
+
+void set_rate(int distr) {
+    rate = max(random_normal(DISTR[distr], 0.1), 0.0);
+}
+
+void set_vars(int _w) {
+    if(_w==STOP) {
+        w = 0.0;
+        P = 0.0;
+    } else {
+        w = (_w+1)*100+50;
+        P = rate;
+    }
+}</declaration>
+**LOCATIONS**<init ref="**INIT_ID**"/>**TRANSITIONS**</template>
