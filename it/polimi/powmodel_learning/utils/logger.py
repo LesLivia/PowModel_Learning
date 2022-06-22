@@ -56,7 +56,7 @@ else:
 class Logger:
     def __init__(self, speaker: str):
         self.speaker = speaker
-        self.format = "\n[{}] ({})\t{}"
+        self.format = "[{}] ({})\t{}"
         pass
 
     def info(self, msg):

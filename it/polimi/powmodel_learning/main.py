@@ -1,8 +1,9 @@
-from utils.logger import Logger
-import it.polimi.powmodel_learning.mgrs.Dot2Upp as dot2upp
-from it.polimi.powmodel_learning.model.SHA import SHA
 import configparser
 import sys
+
+import it.polimi.powmodel_learning.mgrs.Dot2SHA as dot2upp
+import it.polimi.powmodel_learning.mgrs.SHA2Upp as sha2upp
+from utils.logger import Logger
 
 LOGGER = Logger('main')
 
@@ -20,6 +21,7 @@ SHA_NAME = sys.argv[1]
 learned_sha = dot2upp.parse_sha(SHA_PATH.format(SHA_NAME))
 
 # Convert to Uppaal model
+sha2upp.generate_upp_model(learned_sha)
 
 # Run Verification
 

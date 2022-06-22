@@ -65,8 +65,7 @@ class Edge:
 
 
 class SHA:
-    def __init__(self, name: str, decl: str, locs: Set[Location], edges: Set[Edge]):
+    def __init__(self, name: str, locs: Set[Location], edges: Set[Edge]):
         self.name = name
-        self.decl = decl
         self.locations = locs
         self.edges = edges

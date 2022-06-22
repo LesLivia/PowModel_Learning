@@ -1,14 +1,17 @@
 from it.polimi.powmodel_learning.model.SHA import SHA, Location, Edge
 from typing import Set
 from it.polimi.powmodel_learning.utils.logger import Logger
+import sys
 
 LOGGER = Logger('Dot2Uppaal')
 
+SHA_NAME = sys.argv[1]
+
 
 def parse_sha(path: str):
-    LOGGER.info("Starting .dot to Uppaal model conversion...")
+    LOGGER.info("Starting SHA .dot file parsing...")
     locs: Set[Location] = set()
-    edges: Set[Location] = set()
+    edges: Set[Edge] = set()
 
     with open(path, 'r') as dot_file:
         lines = dot_file.readlines()
@@ -24,4 +27,8 @@ def parse_sha(path: str):
             edges.add(Edge.parse_edge(line, locs))
         LOGGER.debug('Found {} edges.'.format(len(edges)))
 
-    LOGGER.info("Uppaal model generation done.")
+    new_sha = SHA(SHA_NAME, locs, edges)
+
+    LOGGER.info("SHA correctly generated.")
+
+    return new_sha
