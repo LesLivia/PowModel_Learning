@@ -107,7 +107,7 @@ def generate_upp_model(learned_sha: SHA, trace_day: str):
         nta_tplt = nta_tplt.replace('**DISTR**', learned_distr_str)
 
     # Test Trace Management
-    tt = get_timed_trace(trace_day)
+    tt, sigs = get_timed_trace(trace_day)
     nta_tplt = nta_tplt.replace('**N_EVENTS**', '{};\n'.format(len(tt)))
     tt_str = '{'
     for i, tup in enumerate(tt):
@@ -126,3 +126,5 @@ def generate_upp_model(learned_sha: SHA, trace_day: str):
     generate_query_file()
 
     LOGGER.info('Uppaal query file successfully created.')
+
+    return sigs

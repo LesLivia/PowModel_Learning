@@ -1,6 +1,6 @@
 import configparser
 import sys
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 from it.polimi.powmodel_learning.model.sigfeatures import SignalPoint, SampledSignal, Timestamp
 
@@ -27,16 +27,18 @@ def parse_signal(input: str, label: str):
 
 
 def fix_signal(sig: SampledSignal):
-    new_pts: Dict[int, float] = dict()
+    new_pts: Dict[Tuple[int, int], float] = {}
 
     for t in range(sig.points[-1].timestamp.min):
         pt = [x.value for x in sig.points if x.timestamp.min == t]
         if len(pt) == 0:
-            new_pts[t] = new_pts[t - 1]
+            for secs in range(60):
+                new_pts[(t, secs)] = new_pts[(t - 1, secs)]
         else:
-            new_pts[t] = pt[0]
+            for secs in range(60):
+                new_pts[(t, secs)] = pt[-1]
 
-    sig.points = [SignalPoint(Timestamp(0, 0, 0, 0, t, 0), new_pts[t]) for t in new_pts]
+    sig.points = [SignalPoint(Timestamp(0, 0, 0, 0, tup[0], tup[1]), new_pts[tup]) for tup in new_pts]
 
     return sig
 
