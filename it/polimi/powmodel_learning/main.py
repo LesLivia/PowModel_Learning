@@ -3,6 +3,7 @@ import sys
 
 import it.polimi.powmodel_learning.mgrs.Dot2SHA as dot2upp
 import it.polimi.powmodel_learning.mgrs.SHA2Upp as sha2upp
+import it.polimi.powmodel_learning.mgrs.VerMgr as ver
 from utils.logger import Logger
 
 LOGGER = Logger('main')
@@ -25,6 +26,7 @@ learned_sha = dot2upp.parse_sha(SHA_PATH.format(SHA_NAME))
 sha2upp.generate_upp_model(learned_sha, TRACE_DAY)
 
 # Run Verification
+ver.run_exp(SHA_NAME)
 
 # Analyze Results
 

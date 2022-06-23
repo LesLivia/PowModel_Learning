@@ -1,8 +1,9 @@
 import configparser
 import sys
-from it.polimi.powmodel_learning.utils.logger import Logger
-from it.polimi.powmodel_learning.model.SHA import SHA
+
 from it.polimi.powmodel_learning.mgrs.TraceParser import get_timed_trace
+from it.polimi.powmodel_learning.model.SHA import SHA
+from it.polimi.powmodel_learning.utils.logger import Logger
 
 config = configparser.ConfigParser()
 config.sections()
@@ -19,6 +20,8 @@ MACHINE_TPLT_NAME = 'machine_sha_template.xml'
 
 LOCATION_TPLT = """<location id="{}" x="{}" y="{}">\n\t<name x="{}" y="{}">{}</name>
 \t<label kind="invariant" x="{}" y="{}">P'==0</label>\n</location>\n"""
+
+QUERY_TPLT = """simulate[<=TAU]{m_1.w, m_1.P}"""
 
 X_START = 0
 X_MAX = 900
@@ -73,6 +76,11 @@ def sha_to_upp_tplt(learned_sha: SHA):
     return learned_sha_tplt
 
 
+def generate_query_file():
+    with open(SAVE_PATH + SHA_NAME + '.q', 'w') as q_file:
+        q_file.write(QUERY_TPLT)
+
+
 def generate_upp_model(learned_sha: SHA, trace_day: str):
     LOGGER.info("Starting Uppaal model generation...")
 
@@ -114,3 +122,7 @@ def generate_upp_model(learned_sha: SHA, trace_day: str):
         new_model.write(nta_tplt)
 
     LOGGER.info('Uppaal model successfully created.')
+
+    generate_query_file()
+
+    LOGGER.info('Uppaal query file successfully created.')
