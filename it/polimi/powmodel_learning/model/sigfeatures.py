@@ -46,6 +46,9 @@ class SignalPoint:
     def __eq__(self, other):
         return self.timestamp == other.timestamp and self.value == other.value
 
+    def __hash__(self):
+        return hash(str(self))
+
 
 class SampledSignal:
     def __init__(self, pts: List[SignalPoint], label=None):
