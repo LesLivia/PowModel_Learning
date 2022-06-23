@@ -23,12 +23,13 @@ def fix_sigs(sigs: List[SampledSignal]):
     return sigs
 
 
-def analyze_results(sigs: List[SampledSignal]):
+def analyze_results(sigs: List[SampledSignal], plot=True):
     LOGGER.info('Analyzing Uppaal results...')
 
     sigs = fix_sigs(sigs)
     upp_sigs = upp2sig.parse_upp_results()
 
-    pltr.double_plot([sigs[0], upp_sigs[0]], [sigs[1], upp_sigs[1]])
+    if plot:
+        pltr.double_plot([sigs[0], upp_sigs[0]], [sigs[1], upp_sigs[1]])
 
     LOGGER.info('Analysis complete.')

@@ -27,8 +27,8 @@ def double_plot(powers: List[SampledSignal], speeds: List[SampledSignal]):
     for i, sig in enumerate(speeds):
         axs[1].plot([pt.timestamp.to_secs() for pt in sig.points], [pt.value for pt in sig.points], label=labels[i])
 
-    axs[0].legend()
-    axs[1].legend()
+    axs[0].legend(fontsize=24)
+    axs[1].legend(fontsize=24)
 
     fig.savefig(SAVE_PATH.format(SHA_NAME), dpi=600)
 
