@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from it.polimi.powmodel_learning.model.sigfeatures import SampledSignal
 
 SHA_NAME = sys.argv[1]
+TRACE_NAME = sys.argv[2]
 
 config = configparser.ConfigParser()
 config.sections()
@@ -30,6 +31,6 @@ def double_plot(powers: List[SampledSignal], speeds: List[SampledSignal]):
     axs[0].legend(fontsize=24)
     axs[1].legend(fontsize=24)
 
-    fig.savefig(SAVE_PATH.format(SHA_NAME), dpi=600)
+    fig.savefig(SAVE_PATH.format(TRACE_NAME), dpi=600)
 
     del fig, axs

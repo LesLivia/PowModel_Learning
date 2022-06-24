@@ -116,7 +116,8 @@ def generate_upp_model(learned_sha: SHA, trace_day: str):
             tt_str += ','
     tt_str += '};\n'
     nta_tplt = nta_tplt.replace('**TRACE**', tt_str)
-    nta_tplt = nta_tplt.replace('**TIME_BOUND**', str(sum([int(tup[0]) for tup in tt])) + ';\n')
+    time_bound = max(sum([int(tup[0]) for tup in tt]), 60)
+    nta_tplt = nta_tplt.replace('**TIME_BOUND**', str(time_bound) + ';\n')
 
     with open(SAVE_PATH + SHA_NAME + '.xml', 'w') as new_model:
         new_model.write(nta_tplt)

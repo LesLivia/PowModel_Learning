@@ -7,7 +7,7 @@ double rate = 0.0;
 double w = 0.0;
 
 void set_rate(int distr) {
-    rate = max(random_normal(DISTR[distr], 0.1), 0.0);
+    rate = DISTR[distr];
 }
 
 void set_vars(int _w) {
