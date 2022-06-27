@@ -2,6 +2,7 @@
 <name>Machine</name>
 <declaration>
 clock P = 0.0;
+clock E = 0.0;
 
 double rate = 0.0;
 double w = 0.0;

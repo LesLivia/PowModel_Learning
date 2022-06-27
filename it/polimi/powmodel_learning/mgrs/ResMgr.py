@@ -30,6 +30,6 @@ def analyze_results(sigs: List[SampledSignal], plot=True):
     upp_sigs = upp2sig.parse_upp_results()
 
     if plot:
-        pltr.double_plot([sigs[0], upp_sigs[0]], [sigs[1], upp_sigs[1]])
+        pltr.double_plot([sigs[0], upp_sigs[0]], [sigs[1], upp_sigs[1]], [sigs[-1], upp_sigs[2]])
 
     LOGGER.info('Analysis complete.')

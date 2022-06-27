@@ -75,7 +75,8 @@ def get_timed_trace(input_file_name: str):
     c_18 = 0
     for i, event in enumerate(tt.e):
         e_sym = 'STOP' if event.symbol == 'i_0' else event.symbol.split('_')[1]
-        if e_sym == '18': c_18 += 1
+        if e_sym == '18':
+            c_18 += 1
         if i == 0:
             diff_t = 0
         else:
@@ -86,4 +87,4 @@ def get_timed_trace(input_file_name: str):
         else:
             tt_tup.append((str(diff_t).replace('.0', ''), e_sym))
 
-    return tt_tup, [energy_cs.signals[0][0], energy_cs.signals[0][1]]
+    return tt_tup, [energy_cs.signals[0][0], energy_cs.signals[0][1], energy_cs.signals[0][3]]

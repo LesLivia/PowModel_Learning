@@ -17,19 +17,23 @@ config.sections()
 SAVE_PATH = config['RESULTS ANALYSIS']['PLOT_PATH']
 
 
-def double_plot(powers: List[SampledSignal], speeds: List[SampledSignal]):
-    fig, axs = plt.subplots(2, figsize=(40, 20))
+def double_plot(powers: List[SampledSignal], speeds: List[SampledSignal], energies: List[SampledSignal]):
+    fig, axs = plt.subplots(3, figsize=(40, 30))
 
     labels = ['real', 'learned']
 
-    for i, sig in enumerate(powers):
+    for i, sig in enumerate(energies):
         axs[0].plot([pt.timestamp.to_secs() for pt in sig.points], [pt.value for pt in sig.points], label=labels[i])
 
-    for i, sig in enumerate(speeds):
+    for i, sig in enumerate(powers):
         axs[1].plot([pt.timestamp.to_secs() for pt in sig.points], [pt.value for pt in sig.points], label=labels[i])
+
+    for i, sig in enumerate(speeds):
+        axs[2].plot([pt.timestamp.to_secs() for pt in sig.points], [pt.value for pt in sig.points], label=labels[i])
 
     axs[0].legend(fontsize=24)
     axs[1].legend(fontsize=24)
+    axs[2].legend(fontsize=24)
 
     fig.savefig(SAVE_PATH.format(TRACE_NAME), dpi=600)
 

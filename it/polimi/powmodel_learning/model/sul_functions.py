@@ -72,7 +72,7 @@ def parse_ts(ts: str):
 def parse_data(path: str):
     # support method to parse traces sampled by ref query
 
-    energy: SampledSignal = SampledSignal([], label='e')
+    energy: SampledSignal = SampledSignal([], label='E')
     power: SampledSignal = SampledSignal([], label='P')
     speed: SampledSignal = SampledSignal([], label='w')
     pressure: SampledSignal = SampledSignal([], label='pr')
@@ -129,6 +129,17 @@ def parse_data(path: str):
                 last_reading = pt.value
         power.points = power_pts
 
+        fixed_energy: List[SignalPoint] = []
+        first_reading = energy.points[0].value
+        last_reading = energy.points[0].value - first_reading
+        for pt in energy.points:
+            if pt.value is None:
+                fixed_energy.append(SignalPoint(pt.timestamp, last_reading))
+            else:
+                last_reading = pt.value - first_reading
+                fixed_energy.append(SignalPoint(pt.timestamp, pt.value - first_reading))
+        energy.points = fixed_energy
+
         # filter speed signal
         nosecs_speed_pts = [SignalPoint(Timestamp(pt.timestamp.year, pt.timestamp.month,
                                                   pt.timestamp.day, pt.timestamp.hour,
@@ -141,7 +152,7 @@ def parse_data(path: str):
             filtered_speed_pts.extend([SignalPoint(ts, max([pt.value for pt in batch_pts]))] * len(batch_pts))
         filtered_speed = SampledSignal(filtered_speed_pts, label='w')
 
-        return [power, filtered_speed, pressure]
+        return [power, filtered_speed, pressure, energy]
 
 
 def get_power_param(segment: List[SignalPoint], flow: FlowCondition):

@@ -44,7 +44,7 @@ def fix_signal(sig: SampledSignal):
 
 
 def parse_upp_results():
-    sig_labels = {'m_1.P': 'P', 'm_1.w': 'w'}
+    sig_labels = {'m_1.P': 'P', 'm_1.w': 'w', 'm_1.E': 'E'}
 
     signals: List[SampledSignal] = []
 
