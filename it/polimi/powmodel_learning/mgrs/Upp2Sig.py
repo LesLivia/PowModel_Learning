@@ -29,7 +29,7 @@ def parse_signal(input: str, label: str):
 def fix_signal(sig: SampledSignal):
     new_pts: Dict[Tuple[int, int], float] = {}
 
-    for t in range(sig.points[-1].timestamp.min):
+    for t in range(sig.points[-1].timestamp.min + 1):
         pt = [x.value for x in sig.points if x.timestamp.min == t]
         if len(pt) == 0:
             for secs in range(60):

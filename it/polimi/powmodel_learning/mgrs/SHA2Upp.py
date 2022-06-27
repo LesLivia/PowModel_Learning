@@ -21,7 +21,7 @@ MACHINE_TPLT_NAME = 'machine_sha_template.xml'
 LOCATION_TPLT = """<location id="{}" x="{}" y="{}">\n\t<name x="{}" y="{}">{}</name>
 \t<label kind="invariant" x="{}" y="{}">P'==0 and E'==rate</label>\n</location>\n"""
 
-QUERY_TPLT = """simulate[<=TAU]{m_1.w, m_1.P, m_1.E/60}"""
+QUERY_TPLT = """simulate[<=TAU]{m_1.w, m_1.P, m_1.E}"""
 
 X_START = 0
 X_MAX = 900
