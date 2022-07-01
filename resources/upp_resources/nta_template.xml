@@ -6,7 +6,7 @@
 **/
 
 // Spindle speed ranges
-const int N_W = 49; 
+const int N_W = 59; 
 
 broadcast chan i_0, m[N_W];
 

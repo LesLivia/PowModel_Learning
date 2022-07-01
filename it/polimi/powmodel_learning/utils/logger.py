@@ -1,10 +1,16 @@
 import configparser
 from enum import Enum
+import sys
 
 config = configparser.ConfigParser()
 config.sections()
 config.read('./resources/config/config.ini')
 config.sections()
+
+TO_FILE = True if config['DEFAULT']['TO_FILE'] == 'True' else False
+SAVE_PATH = config['RESULTS ANALYSIS']['REP_PATH']
+
+SHA_NAME = sys.argv[2]
 
 
 class LogLevel(Enum):
@@ -57,24 +63,45 @@ class Logger:
     def __init__(self, speaker: str):
         self.speaker = speaker
         self.format = "[{}] ({})\t{}"
-        pass
+        with open(SAVE_PATH.format(SHA_NAME), 'w') as log:
+            log.truncate(0)
 
     def info(self, msg):
         if MIN_LOG_LEVEL <= LogLevel.INFO.value:
-            print(self.format.format(self.speaker, str(LogLevel.INFO), msg))
+            s = self.format.format(self.speaker, str(LogLevel.INFO), msg)
+            print(s)
+            if TO_FILE:
+                with open(SAVE_PATH.format(SHA_NAME), 'a') as log:
+                    log.write(s + '\n')
 
     def debug(self, msg):
         if MIN_LOG_LEVEL <= LogLevel.DEBUG.value:
-            print(self.format.format(self.speaker, str(LogLevel.DEBUG), msg))
+            s = self.format.format(self.speaker, str(LogLevel.DEBUG), msg)
+            print(s)
+            if TO_FILE:
+                with open(SAVE_PATH.format(SHA_NAME), 'a') as log:
+                    log.write(s + '\n')
 
     def warn(self, msg):
         if MIN_LOG_LEVEL <= LogLevel.WARNING.value:
-            print(self.format.format(self.speaker, str(LogLevel.WARNING), msg))
+            s = self.format.format(self.speaker, str(LogLevel.WARNING), msg)
+            print(s)
+            if TO_FILE:
+                with open(SAVE_PATH.format(SHA_NAME), 'a') as log:
+                    log.write(s + '\n')
 
     def error(self, msg):
         if MIN_LOG_LEVEL <= LogLevel.ERROR.value:
-            print(self.format.format(self.speaker, str(LogLevel.ERROR), msg))
+            s = self.format.format(self.speaker, str(LogLevel.ERROR), msg)
+            print(s)
+            if TO_FILE:
+                with open(SAVE_PATH.format(SHA_NAME), 'a') as log:
+                    log.write(s + '\n')
 
     def msg(self, msg):
         if MIN_LOG_LEVEL <= LogLevel.MSG.value:
-            print(self.format.format(self.speaker, str(LogLevel.MSG), msg))
+            s = self.format.format(self.speaker, str(LogLevel.MSG), msg)
+            print(s)
+            if TO_FILE:
+                with open(SAVE_PATH.format(SHA_NAME), 'a') as log:
+                    log.write(s + '\n')

@@ -19,7 +19,7 @@ NTA_TPLT_NAME = 'nta_template.xml'
 MACHINE_TPLT_NAME = 'machine_sha_template.xml'
 
 LOCATION_TPLT = """<location id="{}" x="{}" y="{}">\n\t<name x="{}" y="{}">{}</name>
-\t<label kind="invariant" x="{}" y="{}">P'==0 and E'==rate</label>\n</location>\n"""
+\t<label kind="invariant" x="{}" y="{}">P'==0 and E'==P</label>\n</location>\n"""
 
 QUERY_TPLT = """simulate[<=TAU]{m_1.w, m_1.P, m_1.E}"""
 
@@ -31,7 +31,7 @@ Y_RANGE = 300
 
 EDGE_TPLT = """<transition>\n\t<source ref="{}"/>\n\t<target ref="{}"/>
 \t<label kind="synchronisation" x="{}" y="{}">{}</label>
-\t<label kind="assignment" x="{}" y="{}">set_rate({}),set_vars({})</label>\n</transition>"""
+\t<label kind="assignment" x="{}" y="{}">set_vars({}, {})</label>\n</transition>"""
 
 SAVE_PATH = config['MODEL VERIFICATION']['UPPAAL_MODEL_PATH']
 REPORT_PATH = config['RESULTS ANALYSIS']['REPORT_SAVE_PATH']
@@ -70,7 +70,7 @@ def sha_to_upp_tplt(learned_sha: SHA):
         mid_y = abs(y1 - y2) / 2 + min(y1, y2)
         s_speed = 'STOP' if edge.sync.startswith('i') else edge.sync.split(']')[0].replace('m[', '')
         new_edge_str = EDGE_TPLT.format(start_id, dest_id, mid_x, mid_y, edge.sync, mid_x, mid_y + 10,
-                                        edge.dest.distr, s_speed)
+                                        s_speed, edge.dest.distr)
         edges_str += new_edge_str
     learned_sha_tplt = learned_sha_tplt.replace('**TRANSITIONS**', edges_str)
     return learned_sha_tplt
