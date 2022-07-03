@@ -16,12 +16,18 @@ SHA_NAME = sys.argv[1]
 
 NTA_TPLT_PATH = config['MODEL GENERATION']['UPPAAL_TPLT_PATH']
 NTA_TPLT_NAME = 'nta_template.xml'
+NTA_TPLT_NAME_VAL = 'nta_template_val.xml'
 MACHINE_TPLT_NAME = 'machine_sha_template.xml'
+MACHINE_TPLT_NAME_VAL = 'machine_sha_template_val.xml'
 
 LOCATION_TPLT = """<location id="{}" x="{}" y="{}">\n\t<name x="{}" y="{}">{}</name>
 \t<label kind="invariant" x="{}" y="{}">P'==0 and E'==P</label>\n</location>\n"""
 
+LOCATION_TPLT_VAL = """<location id="{}" x="{}" y="{}">\n\t<name x="{}" y="{}">{}</name></location>\n"""
+
 QUERY_TPLT = """simulate[<=TAU]{m_1.w, m_1.P, m_1.E}"""
+
+QUERY_TPLT_VAL = """A<>(p_1.next_i==N_E)"""
 
 X_START = 0
 X_MAX = 900
@@ -33,12 +39,16 @@ EDGE_TPLT = """<transition>\n\t<source ref="{}"/>\n\t<target ref="{}"/>
 \t<label kind="synchronisation" x="{}" y="{}">{}</label>
 \t<label kind="assignment" x="{}" y="{}">set_vars({}, {})</label>\n</transition>"""
 
+EDGE_TPLT_VAL = """<transition>\n\t<source ref="{}"/>\n\t<target ref="{}"/>
+\t<label kind="synchronisation" x="{}" y="{}">{}</label></transition>"""
+
 SAVE_PATH = config['MODEL VERIFICATION']['UPPAAL_MODEL_PATH']
 REPORT_PATH = config['RESULTS ANALYSIS']['REPORT_SAVE_PATH']
 
 
-def sha_to_upp_tplt(learned_sha: SHA):
-    with open(NTA_TPLT_PATH + MACHINE_TPLT_NAME, 'r') as machine_tplt:
+def sha_to_upp_tplt(learned_sha: SHA, validation=False):
+    machine_path = NTA_TPLT_PATH + MACHINE_TPLT_NAME_VAL if validation else NTA_TPLT_PATH + MACHINE_TPLT_NAME
+    with open(machine_path, 'r') as machine_tplt:
         lines = machine_tplt.readlines()
         learned_sha_tplt = ''.join(lines)
 
@@ -46,7 +56,11 @@ def sha_to_upp_tplt(learned_sha: SHA):
     x = X_START
     y = Y_START
     for loc in learned_sha.locations:
-        new_loc_str = LOCATION_TPLT.format('id' + str(loc.id), x, y, x, y - 20, loc.name, x, y - 30)
+        if validation:
+            new_loc_str = LOCATION_TPLT_VAL.format('id' + str(loc.id), x, y, x, y - 20, loc.name)
+        else:
+            new_loc_str = LOCATION_TPLT.format('id' + str(loc.id), x, y, x, y - 20, loc.name, x, y - 30)
+
         loc.x = x
         loc.y = y
         locations_str += new_loc_str
@@ -69,26 +83,33 @@ def sha_to_upp_tplt(learned_sha: SHA):
         mid_x = abs(x1 - x2) / 2 + min(x1, x2)
         mid_y = abs(y1 - y2) / 2 + min(y1, y2)
         s_speed = 'STOP' if edge.sync.startswith('i') else edge.sync.split(']')[0].replace('m[', '')
-        new_edge_str = EDGE_TPLT.format(start_id, dest_id, mid_x, mid_y, edge.sync, mid_x, mid_y + 10,
-                                        s_speed, edge.dest.distr)
+        if validation:
+            new_edge_str = EDGE_TPLT_VAL.format(start_id, dest_id, mid_x, mid_y, edge.sync)
+        else:
+            new_edge_str = EDGE_TPLT.format(start_id, dest_id, mid_x, mid_y, edge.sync, mid_x, mid_y + 10,
+                                            s_speed, edge.dest.distr)
         edges_str += new_edge_str
     learned_sha_tplt = learned_sha_tplt.replace('**TRANSITIONS**', edges_str)
     return learned_sha_tplt
 
 
-def generate_query_file():
+def generate_query_file(validation=False):
     with open(SAVE_PATH + SHA_NAME + '.q', 'w') as q_file:
-        q_file.write(QUERY_TPLT)
+        if validation:
+            q_file.write(QUERY_TPLT_VAL)
+        else:
+            q_file.write(QUERY_TPLT)
 
 
-def generate_upp_model(learned_sha: SHA, trace_day: str):
+def generate_upp_model(learned_sha: SHA, trace_day: str, validation=False):
     LOGGER.info("Starting Uppaal model generation...")
 
     # Learned SHA Management
 
     learned_sha_tplt = sha_to_upp_tplt(learned_sha)
 
-    with open(NTA_TPLT_PATH + NTA_TPLT_NAME, 'r') as nta_tplt:
+    nta_path = NTA_TPLT_PATH + NTA_TPLT_NAME_VAL if validation else NTA_TPLT_PATH + NTA_TPLT_NAME
+    with open(nta_path, 'r') as nta_tplt:
         lines = nta_tplt.readlines()
         nta_tplt = ''.join(lines)
 
