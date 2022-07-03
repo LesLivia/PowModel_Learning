@@ -130,8 +130,16 @@ def parse_data(path: str):
         power.points = power_pts
 
         fixed_energy: List[SignalPoint] = []
-        first_reading = energy.points[0].value
-        last_reading = (energy.points[0].value - first_reading) * 60
+        # Search first energy pt that is not none
+        if energy.points[0].value is None:
+            i = 0
+            while energy.points[i].value is None:
+                i += 1
+            first_reading = energy.points[i].value
+            last_reading = (energy.points[i].value - first_reading) * 60
+        else:
+            first_reading = energy.points[0].value
+            last_reading = (energy.points[0].value - first_reading) * 60
         for pt in energy.points:
             if pt.value is None:
                 fixed_energy.append(SignalPoint(pt.timestamp, last_reading))

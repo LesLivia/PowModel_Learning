@@ -6,6 +6,7 @@ import it.polimi.powmodel_learning.mgrs.Dot2SHA as dot2upp
 import it.polimi.powmodel_learning.mgrs.ResMgr as res
 import it.polimi.powmodel_learning.mgrs.SHA2Upp as sha2upp
 import it.polimi.powmodel_learning.mgrs.VerMgr as ver
+from it.polimi.powmodel_learning.mgrs.ValMgr import get_eligible_traces
 from utils.logger import Logger
 
 LOGGER = Logger('main')
@@ -29,7 +30,7 @@ SHA_NAME = sys.argv[1]
 learned_sha = dot2upp.parse_sha(SHA_PATH.format(SHA_NAME))
 
 # Find eligible traces
-eligible_traces: List[str] = []  # TODO
+eligible_traces: List[str] = get_eligible_traces()
 
 for trace in eligible_traces:
     # Convert to Uppaal model
