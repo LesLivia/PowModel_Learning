@@ -101,7 +101,7 @@ def generate_query_file(validation=False):
             q_file.write(QUERY_TPLT)
 
 
-def generate_upp_model(learned_sha: SHA, trace_day: str, validation=False):
+def generate_upp_model(learned_sha: SHA, trace_day: str, validation=False, tt=None, sigs=None):
     LOGGER.info("Starting Uppaal model generation...")
 
     # Learned SHA Management
@@ -128,7 +128,9 @@ def generate_upp_model(learned_sha: SHA, trace_day: str, validation=False):
         nta_tplt = nta_tplt.replace('**DISTR**', learned_distr_str)
 
     # Test Trace Management
-    tt, sigs = get_timed_trace(trace_day)
+    if tt is None and sigs is None:
+        tt, sigs = get_timed_trace(trace_day)
+
     nta_tplt = nta_tplt.replace('**N_EVENTS**', '{};\n'.format(len(tt)))
     tt_str = '{'
     for i, tup in enumerate(tt):
