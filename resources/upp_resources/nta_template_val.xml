@@ -32,7 +32,7 @@ double max(double x,double y) {
 		<name x="5" y="5">Program</name>
 		<declaration>clock x;
 
-double T = 0.0;
+int T = 0;
 int next_i = -1;
 int next_e = -1;
 

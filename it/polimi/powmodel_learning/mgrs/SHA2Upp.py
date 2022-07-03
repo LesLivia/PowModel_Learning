@@ -106,7 +106,7 @@ def generate_upp_model(learned_sha: SHA, trace_day: str, validation=False):
 
     # Learned SHA Management
 
-    learned_sha_tplt = sha_to_upp_tplt(learned_sha)
+    learned_sha_tplt = sha_to_upp_tplt(learned_sha, validation)
 
     nta_path = NTA_TPLT_PATH + NTA_TPLT_NAME_VAL if validation else NTA_TPLT_PATH + NTA_TPLT_NAME
     with open(nta_path, 'r') as nta_tplt:
@@ -145,7 +145,7 @@ def generate_upp_model(learned_sha: SHA, trace_day: str, validation=False):
 
     LOGGER.info('Uppaal model successfully created.')
 
-    generate_query_file()
+    generate_query_file(validation)
 
     LOGGER.info('Uppaal query file successfully created.')
 

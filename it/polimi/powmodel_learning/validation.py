@@ -30,7 +30,7 @@ SHA_NAME = sys.argv[1]
 learned_sha = dot2upp.parse_sha(SHA_PATH.format(SHA_NAME))
 
 # Find eligible traces
-eligible_traces: List[str] = get_eligible_traces()
+eligible_traces: List[str] = get_eligible_traces(learned_sha)
 
 for trace in eligible_traces:
     # Convert to Uppaal model
