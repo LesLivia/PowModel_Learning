@@ -29,7 +29,7 @@ def get_ts():
 
 def run_exp(scen_name):
     LOGGER.info('Starting verification...')
-    res_name = scen_name # + '_' + get_ts()
+    res_name = scen_name  # + '_' + get_ts()
     os.system('{} {} {} {} {}'.format(SCRIPT_PATH, UPPAAL_PATH,
                                       UPPAAL_XML_PATH + scen_name + MODEL_EXT,
                                       UPPAAL_XML_PATH + scen_name + QUERY_EXT,
