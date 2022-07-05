@@ -59,13 +59,14 @@ def get_cut_signals(trace):
 
 def get_subtraces(tt, sigs):
     subtraces = []
+    # find all subtraces of tt, up to minimum length MIN_T
     for l in range(MIN_T, len(tt)):
         for i in range(len(tt)):
             subtrace = tt[i:i + l]
             if len(subtrace) == l:
                 first_ts = sigs[0].points[0].timestamp.to_secs()
                 start_ts = first_ts + sum([int(x[0]) for j, x in enumerate(tt) if j <= i]) * 60
-                end_ts = first_ts + sum([int(x[0]) for j, x in enumerate(tt) if j < i + l]) * 60
+                end_ts = first_ts + sum([int(x[0]) for j, x in enumerate(tt) if j <= i + l]) * 60
                 subtraces.append((subtrace, start_ts, end_ts))
             else:
                 break

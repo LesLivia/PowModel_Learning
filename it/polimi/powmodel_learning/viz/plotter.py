@@ -3,7 +3,7 @@ import sys
 from typing import List
 
 import matplotlib.pyplot as plt
-
+import random
 from it.polimi.powmodel_learning.model.sigfeatures import SampledSignal
 
 SHA_NAME = sys.argv[1]
@@ -39,6 +39,6 @@ def double_plot(powers: List[SampledSignal], speeds: List[SampledSignal],
     if f_name is None:
         fig.savefig(SAVE_PATH.format(TRACE_NAME), dpi=600)
     else:
-        fig.savefig(SAVE_PATH.format(f_name), dpi=600)
+        fig.savefig(SAVE_PATH.format(f_name + '_{}'.format(random.randint(0, 1000))), dpi=600)
 
     del fig, axs

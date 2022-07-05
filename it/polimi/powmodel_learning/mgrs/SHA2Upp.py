@@ -101,7 +101,7 @@ def generate_query_file(validation=False):
             q_file.write(QUERY_TPLT)
 
 
-def generate_upp_model(learned_sha: SHA, trace_day: str, validation=False, tt=None, sigs=None):
+def generate_upp_model(learned_sha: SHA, trace_day: str, validation=False, tt=None, sigs=None, TAU=None):
     LOGGER.info("Starting Uppaal model generation...")
 
     # Learned SHA Management
@@ -139,7 +139,10 @@ def generate_upp_model(learned_sha: SHA, trace_day: str, validation=False, tt=No
             tt_str += ','
     tt_str += '};\n'
     nta_tplt = nta_tplt.replace('**TRACE**', tt_str)
-    time_bound = max(sum([int(tup[0]) for tup in tt]), 60)
+    if TAU is None:
+        time_bound = max(sum([int(tup[0]) for tup in tt]), 60)
+    else:
+        time_bound = TAU
     nta_tplt = nta_tplt.replace('**TIME_BOUND**', str(time_bound) + ';\n')
 
     with open(SAVE_PATH + SHA_NAME + '.xml', 'w') as new_model:
