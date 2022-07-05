@@ -6,7 +6,7 @@ import it.polimi.powmodel_learning.mgrs.Dot2SHA as dot2upp
 import it.polimi.powmodel_learning.mgrs.ResMgr as res
 import it.polimi.powmodel_learning.mgrs.SHA2Upp as sha2upp
 import it.polimi.powmodel_learning.mgrs.VerMgr as ver
-from it.polimi.powmodel_learning.mgrs.ValMgr import get_eligible_traces
+from it.polimi.powmodel_learning.mgrs.ValMgr import get_eligible_traces, get_cut_signals
 from utils.logger import Logger
 
 LOGGER = Logger('main')
@@ -32,14 +32,18 @@ learned_sha = dot2upp.parse_sha(SHA_PATH.format(SHA_NAME))
 # Find eligible traces
 eligible_traces: List[str] = get_eligible_traces(learned_sha)
 
+LOGGER.info("Found {} eligible traces.".format(len(eligible_traces)))
+
 for trace in eligible_traces:
+    sigs = get_cut_signals(trace)
+
     # Convert to Uppaal model
-    sigs = sha2upp.generate_upp_model(learned_sha, trace)
+    sha2upp.generate_upp_model(learned_sha, trace, tt=trace[2][0])
 
     # Run Verification
     ver.run_exp(SHA_NAME)
 
     # Analyze Results
-    res.analyze_results(sigs)
+    res.analyze_results(sigs, file_name=trace[1])
 
 LOGGER.info("Done.")

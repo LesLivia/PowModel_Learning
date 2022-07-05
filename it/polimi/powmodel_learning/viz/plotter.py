@@ -17,7 +17,8 @@ config.sections()
 SAVE_PATH = config['RESULTS ANALYSIS']['PLOT_PATH']
 
 
-def double_plot(powers: List[SampledSignal], speeds: List[SampledSignal], energies: List[SampledSignal]):
+def double_plot(powers: List[SampledSignal], speeds: List[SampledSignal],
+                energies: List[SampledSignal], f_name: str = None):
     fig, axs = plt.subplots(3, figsize=(40, 30))
 
     labels = ['real', 'learned']
@@ -35,6 +36,9 @@ def double_plot(powers: List[SampledSignal], speeds: List[SampledSignal], energi
     axs[1].legend(fontsize=24)
     axs[2].legend(fontsize=24)
 
-    fig.savefig(SAVE_PATH.format(TRACE_NAME), dpi=600)
+    if f_name is None:
+        fig.savefig(SAVE_PATH.format(TRACE_NAME), dpi=600)
+    else:
+        fig.savefig(SAVE_PATH.format(f_name), dpi=600)
 
     del fig, axs

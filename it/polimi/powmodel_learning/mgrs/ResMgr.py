@@ -23,14 +23,14 @@ def fix_sigs(sigs: List[SampledSignal]):
     return sigs
 
 
-def analyze_results(sigs: List[SampledSignal], plot=True):
+def analyze_results(sigs: List[SampledSignal], plot=True, file_name: str = None):
     LOGGER.info('Analyzing Uppaal results...')
 
     sigs = fix_sigs(sigs)
     upp_sigs = upp2sig.parse_upp_results()
 
     if plot:
-        pltr.double_plot([sigs[0], upp_sigs[0]], [sigs[1], upp_sigs[1]], [sigs[2], upp_sigs[2]])
+        pltr.double_plot([sigs[0], upp_sigs[0]], [sigs[1], upp_sigs[1]], [sigs[2], upp_sigs[2]], file_name)
 
     energy_error = abs(sigs[2].points[-1].value - upp_sigs[2].points[-1].value) / sigs[2].points[-1].value * 100
 

@@ -6,6 +6,7 @@ from it.polimi.powmodel_learning.mgrs.SHA2Upp import generate_upp_model
 from it.polimi.powmodel_learning.mgrs.TraceParser import get_timed_trace
 from it.polimi.powmodel_learning.mgrs.VerMgr import run_exp
 from it.polimi.powmodel_learning.model.SHA import SHA
+from it.polimi.powmodel_learning.model.sigfeatures import SampledSignal
 from it.polimi.powmodel_learning.utils.logger import Logger
 
 LOGGER = Logger('Validation Manager')
@@ -39,18 +40,33 @@ def parse_traces():
     for f in csv_files:
         trace, _ = get_timed_trace(f.replace('.csv', ''))
         if len(trace) > 0:
-            parsed_traces.append(f.replace('.csv', ''))
+            parsed_traces.append((f, f.replace('.csv', '')))
 
     return parsed_traces
 
 
-def get_subtraces(tt):
+def get_cut_signals(trace):
+    original_sigs = get_timed_trace(trace[1])[1]
+    start_ts = trace[2][1]
+    end_ts = trace[2][2]
+    new_sigs = []
+    for sig in original_sigs:
+        new_pts = [pt for pt in sig.points if start_ts <= pt.timestamp.to_secs() <= end_ts]
+        new_sigs.append(SampledSignal(new_pts, sig.label))
+
+    return new_sigs
+
+
+def get_subtraces(tt, sigs):
     subtraces = []
     for l in range(MIN_T, len(tt)):
         for i in range(len(tt)):
             subtrace = tt[i:i + l]
             if len(subtrace) == l:
-                subtraces.append(subtrace)
+                first_ts = sigs[0].points[0].timestamp.to_secs()
+                start_ts = first_ts + sum([int(x[0]) for j, x in enumerate(tt) if j <= i]) * 60
+                end_ts = first_ts + sum([int(x[0]) for j, x in enumerate(tt) if j < i + l]) * 60
+                subtraces.append((subtrace, start_ts, end_ts))
             else:
                 break
 
@@ -60,19 +76,19 @@ def get_subtraces(tt):
 def verify_trace(learned_sha: SHA, traces):
     eligible_traces = []
     for trace in traces:
-        tt, sigs = get_timed_trace(trace)
-        for s_tt in get_subtraces(tt):
-            generate_upp_model(learned_sha, trace, validation=True, tt=s_tt, sigs=sigs)
+        tt, sigs = get_timed_trace(trace[1])
+        for s_tt in get_subtraces(tt, sigs):
+            generate_upp_model(learned_sha, trace[1], validation=True, tt=s_tt[0])
             run_exp(SHA_NAME)
             with open(RESULTS_PATH.format(SHA_NAME)) as res_f:
                 result = [l for l in res_f.readlines() if l.__contains__('Formula is')][0]
                 if not result.__contains__('NOT'):
-                    eligible_traces.append(s_tt)
+                    s_tt[0][0] = ('0', s_tt[0][0][1])
+                    eligible_traces.append((trace[0], trace[1], s_tt))
 
     return eligible_traces
 
 
 def get_eligible_traces(learned_sha: SHA):
     eligible_traces = verify_trace(learned_sha, parse_traces())
-    print(eligible_traces)
-    return []
+    return eligible_traces
