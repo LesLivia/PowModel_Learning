@@ -6,7 +6,7 @@ from it.polimi.powmodel_learning.mgrs.SHA2Upp import generate_upp_model
 from it.polimi.powmodel_learning.mgrs.TraceParser import get_timed_trace
 from it.polimi.powmodel_learning.mgrs.VerMgr import run_exp
 from it.polimi.powmodel_learning.model.SHA import SHA
-from it.polimi.powmodel_learning.model.sigfeatures import SampledSignal
+from it.polimi.powmodel_learning.model.sigfeatures import SampledSignal, SignalPoint
 from it.polimi.powmodel_learning.utils.logger import Logger
 
 LOGGER = Logger('Validation Manager')
@@ -51,7 +51,12 @@ def get_cut_signals(trace):
     end_ts = trace[2][2]
     new_sigs = []
     for sig in original_sigs:
-        new_pts = [pt for pt in sig.points if start_ts <= pt.timestamp.to_secs() <= end_ts]
+        if sig.label == 'E':
+            new_pts = [pt for pt in sig.points if start_ts <= pt.timestamp.to_secs() <= end_ts]
+            new_pts = [SignalPoint(pt.timestamp, pt.value - new_pts[0].value) for pt in new_pts]
+        else:
+            new_pts = [pt for pt in sig.points if start_ts <= pt.timestamp.to_secs() <= end_ts]
+
         new_sigs.append(SampledSignal(new_pts, sig.label))
 
     return new_sigs
