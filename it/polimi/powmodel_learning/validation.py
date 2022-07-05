@@ -38,7 +38,7 @@ for trace in eligible_traces:
     sigs = get_cut_signals(trace)
 
     # Convert to Uppaal model
-    sha2upp.generate_upp_model(learned_sha, trace, tt=trace[2][0], TAU=int((trace[2][2] - trace[2][1]) / 60))
+    sha2upp.generate_upp_model(learned_sha, trace, tt=trace[2][0], TAU=int((trace[2][2] - trace[2][1]) / 60) - 1)
 
     # Run Verification
     ver.run_exp(SHA_NAME)
