@@ -1,13 +1,17 @@
 import configparser
 import sys
+import traceback
 from typing import List, Dict, Tuple
 
 from it.polimi.powmodel_learning.model.sigfeatures import SignalPoint, SampledSignal, Timestamp
+from it.polimi.powmodel_learning.utils.logger import Logger
 
 config = configparser.ConfigParser()
 config.sections()
 config.read('./resources/config/config.ini')
 config.sections()
+
+LOGGER = Logger("Uppaal Results Manager")
 
 UPPAAL_OUT_PATH = config['MODEL VERIFICATION']['UPPAAL_OUT_PATH']
 SHA_NAME = sys.argv[1]
@@ -48,13 +52,16 @@ def parse_upp_results():
 
     signals: List[SampledSignal] = []
 
-    with open(UPPAAL_OUT_PATH.format(SHA_NAME), 'r') as res_file:
-        lines = res_file.readlines()
+    try:
+        with open(UPPAAL_OUT_PATH.format(SHA_NAME), 'r') as res_file:
+            lines = res_file.readlines()
 
-        for key in sig_labels:
-            line = [l for i, l in enumerate(lines) if lines[i - 1].__contains__(key)][0]
-            line = line.split(': ')[1].replace('\n', '')
-            upp_signal = parse_signal(line, sig_labels[key])
-            signals.append(fix_signal(upp_signal))
+            for key in sig_labels:
+                line = [l for i, l in enumerate(lines) if lines[i - 1].__contains__(key)][0]
+                line = line.split(': ')[1].replace('\n', '')
+                upp_signal = parse_signal(line, sig_labels[key])
+                signals.append(fix_signal(upp_signal))
+    except IndexError:
+        traceback.print_exc()
 
     return signals

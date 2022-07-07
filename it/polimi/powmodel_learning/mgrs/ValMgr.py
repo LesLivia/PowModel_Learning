@@ -2,6 +2,8 @@ import configparser
 import os
 import sys
 
+from tqdm import tqdm
+
 from it.polimi.powmodel_learning.mgrs.SHA2Upp import generate_upp_model
 from it.polimi.powmodel_learning.mgrs.TraceParser import get_timed_trace
 from it.polimi.powmodel_learning.mgrs.VerMgr import run_exp
@@ -81,9 +83,9 @@ def get_subtraces(tt, sigs):
 
 def verify_trace(learned_sha: SHA, traces):
     eligible_traces = []
-    for trace in traces:
+    for trace in tqdm(traces):
         tt, sigs = get_timed_trace(trace[1])
-        for s_tt in get_subtraces(tt, sigs):
+        for s_tt in tqdm(get_subtraces(tt, sigs)):
             generate_upp_model(learned_sha, trace[1], validation=True, tt=s_tt[0])
             run_exp(SHA_NAME)
             with open(RESULTS_PATH.format(SHA_NAME)) as res_f:
