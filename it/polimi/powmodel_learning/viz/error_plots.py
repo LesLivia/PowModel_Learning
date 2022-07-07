@@ -16,6 +16,7 @@ with open(log_name) as log:
     plt.hist(errors, bins=100)
     plt.axvline(avg_error, color='k', linestyle='dashed')
     min_ylim, max_ylim = plt.ylim()
-    plt.text(avg_error+1.0, max_ylim * 0.9, "Mean {:.1f}".format(avg_error))
+    plt.title("{} traces".format(len(errors)))
+    plt.text(avg_error + 1.0, max_ylim * 0.9, "Mean {:.1f}%".format(avg_error))
     plt.xticks(np.arange(0, max(errors), 50))
     plt.show()
