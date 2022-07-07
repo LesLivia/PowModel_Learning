@@ -1,5 +1,5 @@
 import configparser
-import os
+import subprocess
 from datetime import datetime
 
 from it.polimi.powmodel_learning.utils.logger import Logger
@@ -30,8 +30,9 @@ def get_ts():
 def run_exp(scen_name):
     LOGGER.info('Starting verification...')
     res_name = scen_name  # + '_' + get_ts()
-    os.system('{} {} {} {} {}'.format(SCRIPT_PATH, UPPAAL_PATH,
-                                      UPPAAL_XML_PATH + scen_name + MODEL_EXT,
-                                      UPPAAL_XML_PATH + scen_name + QUERY_EXT,
-                                      UPPAAL_OUT_PATH.format(res_name)))
+    cmd = '{} {} {} {} {}'.format(SCRIPT_PATH, UPPAAL_PATH,
+                                  UPPAAL_XML_PATH + scen_name + MODEL_EXT,
+                                  UPPAAL_XML_PATH + scen_name + QUERY_EXT,
+                                  UPPAAL_OUT_PATH.format(res_name))
+    subprocess.run(cmd, shell=True)
     LOGGER.info('Verification complete.')

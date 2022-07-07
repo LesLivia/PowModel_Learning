@@ -44,6 +44,9 @@ for trace in eligible_traces:
     ver.run_exp(SHA_NAME)
 
     # Analyze Results
-    res.analyze_results(sigs, file_name=trace[1])
+    try:
+        res.analyze_results(sigs, file_name=trace[1])
+    except IndexError:
+        LOGGER.error("ERROR WITH TRACE {}".format(trace))
 
 LOGGER.info("Done.")
