@@ -30,15 +30,15 @@ def analyze_results(sigs: List[SampledSignal], plot=True, file_name: str = None)
     upp_sigs = upp2sig.parse_upp_results()
 
     if plot:
-        pltr.double_plot([sigs[0], upp_sigs[0]], [sigs[1], upp_sigs[1]], [sigs[2], upp_sigs[2]], file_name)
+        pltr.double_plot([sigs[0], upp_sigs[1][-1]], [sigs[1], upp_sigs[0][-1]], [sigs[2], upp_sigs[2][-1]], file_name)
 
-    energy_error = abs(sigs[2].points[-1].value - upp_sigs[2].points[-1].value) / sigs[2].points[-1].value * 100
+    energy_error = abs(sigs[2].points[-1].value - upp_sigs[2][-1].points[-1].value) / sigs[2].points[-1].value * 100
 
     LOGGER.info("----- REAL ENERGY CONSUMPTION -----")
     LOGGER.info("{:.4f}".format(sigs[2].points[-1].value))
     LOGGER.info("-----------------------------------")
     LOGGER.info("----- EST. ENERGY CONSUMPTION -----")
-    LOGGER.info("{:.4f}".format(upp_sigs[2].points[-1].value))
+    LOGGER.info("{:.4f}".format(upp_sigs[2][-1].points[-1].value))
     LOGGER.info("-----------------------------------")
     LOGGER.info("----- ENERGY ESTIMATION ERROR -----")
     LOGGER.info("{:.4f}%".format(energy_error))

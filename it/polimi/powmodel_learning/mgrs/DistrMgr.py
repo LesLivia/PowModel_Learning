@@ -40,4 +40,4 @@ def fit_distr(plot=False):
             plt.plot(rng, line)
             plt.show()
 
-    return "return DISTR[distr];"
+    return "return random_normal(DISTR[distr], 0.1);"
