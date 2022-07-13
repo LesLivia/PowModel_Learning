@@ -56,7 +56,7 @@ def filter_signals(signals: List[List[SampledSignal]]):
         max_sig_pts: List[SignalPoint] = []
         avg_sig_pts: List[SignalPoint] = []
 
-        for pt in tqdm(sig_type[0].points[:10]): #FIXME, just for debug
+        for pt in tqdm(sig_type[0].points[:100]): #FIXME, just for debug
             pts_same_time = [pt_2.value for sig in sig_type for pt_2 in sig.points if pt.timestamp == pt_2.timestamp]
             min_sig_pts.append(SignalPoint(pt.timestamp, min(pts_same_time)))
             max_sig_pts.append(SignalPoint(pt.timestamp, max(pts_same_time)))
