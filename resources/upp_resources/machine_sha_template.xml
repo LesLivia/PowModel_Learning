@@ -7,13 +7,17 @@ clock E = 0.0;
 double rate = 0.0;
 double w = 0.0;
 
+double get_rate(int distr) {
+    **PDF**
+}
+
 void set_vars(int _w, int distr) {
     if(_w==STOP) {
         w = 0.0;
         P = 0.0;
     } else {
         w = (_w+1)*100+50;
-        rate = DISTR[distr];
+        rate = get_rate(distr);
         P = rate;
     }
 }</declaration>

@@ -1,6 +1,7 @@
 import configparser
 import sys
 
+from it.polimi.powmodel_learning.mgrs.DistrMgr import fit_distr
 from it.polimi.powmodel_learning.mgrs.TraceParser import get_timed_trace
 from it.polimi.powmodel_learning.model.SHA import SHA
 from it.polimi.powmodel_learning.utils.logger import Logger
@@ -25,7 +26,7 @@ LOCATION_TPLT = """<location id="{}" x="{}" y="{}">\n\t<name x="{}" y="{}">{}</n
 
 LOCATION_TPLT_VAL = """<location id="{}" x="{}" y="{}">\n\t<name x="{}" y="{}">{}</name></location>\n"""
 
-QUERY_TPLT = """simulate[<=TAU]{m_1.w, m_1.P, m_1.E}"""
+QUERY_TPLT = """simulate[<=TAU; 100]{m_1.w, m_1.P, m_1.E}"""
 
 QUERY_TPLT_VAL = """A<>(p_1.next_i==N_E)"""
 
@@ -51,6 +52,9 @@ def sha_to_upp_tplt(learned_sha: SHA, validation=False):
     with open(machine_path, 'r') as machine_tplt:
         lines = machine_tplt.readlines()
         learned_sha_tplt = ''.join(lines)
+
+    if not validation:
+        learned_sha_tplt = learned_sha_tplt.replace('**PDF**', fit_distr())
 
     locations_str = ''
     x = X_START

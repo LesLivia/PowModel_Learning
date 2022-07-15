@@ -29,6 +29,13 @@ SHA_NAME = sys.argv[1]
 # Parse .dot file
 learned_sha = dot2upp.parse_sha(SHA_PATH.format(SHA_NAME))
 
+for loc in learned_sha.locations:
+    out_edges = [edge for edge in learned_sha.edges if edge.start == loc]
+    for i, edge in enumerate(out_edges):
+        for j, edge_2 in enumerate(out_edges):
+            if edge.sync == edge_2.sync and i != j:
+                print("duplicate from {} with {}".format(loc.name, edge.sync))
+
 # Find eligible traces
 eligible_traces: List[str] = get_eligible_traces(learned_sha)
 
