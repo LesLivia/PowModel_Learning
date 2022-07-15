@@ -50,17 +50,22 @@ def fix_signal(sig: SampledSignal):
 def filter_signals(signals: List[List[SampledSignal]]):
     filtered_sigs: List[List[SampledSignal]] = []
 
-    for sig_type in signals:
+    for i_sig, sig_type in enumerate(signals):
         filtered_sigs.append([])
         min_sig_pts: List[SignalPoint] = []
         max_sig_pts: List[SignalPoint] = []
         avg_sig_pts: List[SignalPoint] = []
 
-        for pt in tqdm(sig_type[0].points):
-            pts_same_time = [pt_2.value for sig in sig_type for pt_2 in sig.points if pt.timestamp == pt_2.timestamp]
-            min_sig_pts.append(SignalPoint(pt.timestamp, min(pts_same_time)))
-            max_sig_pts.append(SignalPoint(pt.timestamp, max(pts_same_time)))
-            avg_sig_pts.append(SignalPoint(pt.timestamp, sum(pts_same_time)/len(pts_same_time)))
+        if i_sig == 0:  # spindle speed has no variability
+            min_sig_pts = sig_type[0].points
+            max_sig_pts = sig_type[0].points
+            avg_sig_pts = sig_type[0].points
+        else:
+            for i_pt, pt in tqdm(enumerate(sig_type[0].points)):
+                pts_same_time = [sig.points[i_pt].value for sig in sig_type]
+                min_sig_pts.append(SignalPoint(pt.timestamp, min(pts_same_time)))
+                max_sig_pts.append(SignalPoint(pt.timestamp, max(pts_same_time)))
+                avg_sig_pts.append(SignalPoint(pt.timestamp, sum(pts_same_time) / len(pts_same_time)))
 
         min_sig = SampledSignal(min_sig_pts, sig_type[0].label)
         max_sig = SampledSignal(max_sig_pts, sig_type[0].label)
@@ -79,6 +84,10 @@ def parse_upp_results():
     try:
         with open(UPPAAL_OUT_PATH.format(SHA_NAME), 'r') as res_file:
             lines = res_file.readlines()
+
+            e_line = [l for l in lines if l.startswith('Values in ')][0]
+            e_line = e_line.split('mean=')[1].split(':')[0]
+            energy_ci = (float(e_line.split(' steps=')[0]), float(e_line.split(' steps=')[1]))
 
             for key_i, key in enumerate(sig_labels_upp):
                 signals.append([])
@@ -99,4 +108,4 @@ def parse_upp_results():
 
     signals = filter_signals(signals)
 
-    return signals
+    return signals, energy_ci
