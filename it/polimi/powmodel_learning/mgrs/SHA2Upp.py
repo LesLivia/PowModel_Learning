@@ -1,7 +1,7 @@
 import configparser
 import sys
+from typing import List
 
-from it.polimi.powmodel_learning.mgrs.DistrMgr import fit_distr
 from it.polimi.powmodel_learning.mgrs.TraceParser import get_timed_trace
 from it.polimi.powmodel_learning.model.SHA import SHA
 from it.polimi.powmodel_learning.utils.logger import Logger
@@ -38,7 +38,7 @@ Y_RANGE = 300
 
 EDGE_TPLT = """<transition>\n\t<source ref="{}"/>\n\t<target ref="{}"/>
 \t<label kind="synchronisation" x="{}" y="{}">{}</label>
-\t<label kind="assignment" x="{}" y="{}">set_vars({}, {})</label>\n</transition>"""
+\t<label kind="assignment" x="{}" y="{}">set_vars({}, {}, {}, {}, {})</label>\n</transition>"""
 
 EDGE_TPLT_VAL = """<transition>\n\t<source ref="{}"/>\n\t<target ref="{}"/>
 \t<label kind="synchronisation" x="{}" y="{}">{}</label></transition>"""
@@ -54,7 +54,7 @@ def sha_to_upp_tplt(learned_sha: SHA, validation=False):
         learned_sha_tplt = ''.join(lines)
 
     if not validation:
-        pass #TODO
+        pass  # TODO
         # learned_sha_tplt = learned_sha_tplt.replace('**PDF**', fit_distr(plot=True))
 
     locations_str = ''
@@ -91,8 +91,11 @@ def sha_to_upp_tplt(learned_sha: SHA, validation=False):
         if validation:
             new_edge_str = EDGE_TPLT_VAL.format(start_id, dest_id, mid_x, mid_y, edge.sync)
         else:
-            new_edge_str = EDGE_TPLT.format(start_id, dest_id, mid_x, mid_y, edge.sync, mid_x, mid_y + 10,
-                                            s_speed, edge.dest.distr)
+            dest_fit_distr = [f_d for i_d, f_d in enumerate(learned_sha.fit_distr) if i_d == edge.dest.distr][0]
+            new_edge_str = EDGE_TPLT.format(start_id, dest_id, mid_x, mid_y, edge.sync, mid_x, mid_y + 10, s_speed,
+                                            '{:.2f}'.format(dest_fit_distr.min_x),
+                                            '{:.2f}'.format(dest_fit_distr.max_x),
+                                            '{:.2f}'.format(dest_fit_distr.max_pdf), edge.dest.distr)
         edges_str += new_edge_str
     learned_sha_tplt = learned_sha_tplt.replace('**TRANSITIONS**', edges_str)
     return learned_sha_tplt
@@ -128,9 +131,28 @@ def generate_upp_model(learned_sha: SHA, trace_day: str, validation=False, tt=No
         learned_distr_str = content[start_i:end_i]
         learned_distr_str = [l for l in learned_distr_str if l.startswith('D_')]
         learned_distr_str = [l.split('(')[1].replace(')\n', '') for l in learned_distr_str]
+        # N. OF LEARNED DISTRIBUTIONS
         nta_tplt = nta_tplt.replace('**N_DISTR**', '{};\n'.format(len(learned_distr_str)))
-        learned_distr_str = '{' + ','.join(learned_distr_str) + '};\n'
-        nta_tplt = nta_tplt.replace('**DISTR**', learned_distr_str)
+        # N. OF KERNELS FOR EACH DISTR.
+        kers_vect = '{' + ','.join([str(f_d.n_ker) for f_d in learned_sha.fit_distr]) + '};\n'
+        nta_tplt = nta_tplt.replace('**KER_VECT**', kers_vect)
+        # SIGMA FOR EACH DISTR
+        sigma_vect = '{' + ','.join([str(f_d.h) for f_d in learned_sha.fit_distr]) + '};\n'
+        nta_tplt = nta_tplt.replace('**H_VECT**', sigma_vect)
+        # MEANS VECT. FOR EACH DISTR
+        mu_vect: List[str] = []
+        kde_switch: List[str] = []
+        for i_d, f_d in enumerate(learned_sha.fit_distr):
+            val_vect = '{' + ','.join([str(x) for x in f_d.mu_vec]) + '};'
+            mu_vect.append('const double MU_{}[N_KER[{}]] = '.format(i_d, i_d) + val_vect)
+
+            if i_d == 0:
+                case_str = 'if(d=={})'.format(i_d) + 'res = res + normal_pdf(MU_{}[i], SIGMA[d], x);'.format(i_d)
+            else:
+                case_str = 'else if(d=={})'.format(i_d) + 'res = res + normal_pdf(MU_{}[i], SIGMA[d], x);'.format(i_d)
+            kde_switch.append(case_str)
+        nta_tplt = nta_tplt.replace('**MU_VECT**', '\n'.join(mu_vect))
+        nta_tplt = nta_tplt.replace('**KDE_SWITCH**', '\n'.join(kde_switch))
 
     # Test Trace Management
     if tt is None and sigs is None:

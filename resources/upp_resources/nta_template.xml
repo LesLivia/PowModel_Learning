@@ -15,6 +15,7 @@ broadcast chan i_0, m[N_W];
 **/ 
 
 // Learned distributions
+const double PI       = 3.1415926535897931159979;
 const int N_D = **N_DISTR**
 const int N_KER[N_D] = **KER_VECT**
 const double SIGMA[N_D] = **H_VECT**
