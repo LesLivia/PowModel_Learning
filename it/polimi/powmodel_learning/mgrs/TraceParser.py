@@ -16,18 +16,10 @@ MIN_SPEED = int(config['ENERGY CS']['MIN_SPEED'])
 MAX_SPEED = int(config['ENERGY CS']['MAX_SPEED'])
 
 
-# FIXME: temporarily approximated to constant function
 def pwr_model(interval: List[Timestamp], P_0):
     interval = [ts.to_secs() for ts in interval]
     AVG_PW = 1.0
     return [AVG_PW] * len(interval)
-
-
-def stopping_model(interval: List[Timestamp], P_0):
-    interval = [ts.to_secs() - interval[0].to_secs() for ts in interval]
-    COEFF = 1.0
-    values = [max(0, P_0 - COEFF * t) for t in interval]
-    return values
 
 
 # define flow conditions
@@ -71,20 +63,13 @@ def get_timed_trace(input_file_name: str):
         tt.t = [Timestamp(tt.t[0].year, tt.t[0].month, tt.t[0].day, tt.t[0].hour, 0, 0)] + tt.t
         tt.e = [Event('', '', 'i_0')] + tt.e
 
-    # FIXME
-    c_18 = 0
     for i, event in enumerate(tt.e):
         e_sym = 'STOP' if event.symbol == 'i_0' else event.symbol.split('_')[1]
-        if e_sym == '18':
-            c_18 += 1
         if i == 0:
             diff_t = 0
         else:
             diff_t = ((tt.t[i].to_secs() - tt.t[0].to_secs()) - (tt.t[i - 1].to_secs() - tt.t[0].to_secs())) / 60
 
-        if e_sym == '18' and c_18 == 2:
-            tt_tup.append((str(diff_t).replace('.0', ''), '17'))
-        else:
-            tt_tup.append((str(diff_t).replace('.0', ''), e_sym))
+        tt_tup.append((str(diff_t).replace('.0', ''), e_sym))
 
     return tt_tup, [energy_cs.signals[-1][0], energy_cs.signals[-1][1], energy_cs.signals[-1][3]]

@@ -1,7 +1,9 @@
-from it.polimi.powmodel_learning.model.SHA import SHA, Location, Edge
-from typing import Set
-from it.polimi.powmodel_learning.utils.logger import Logger
 import sys
+from typing import Set
+
+from it.polimi.powmodel_learning.mgrs.DistrMgr import fit_distr
+from it.polimi.powmodel_learning.model.SHA import SHA, Location, Edge
+from it.polimi.powmodel_learning.utils.logger import Logger
 
 LOGGER = Logger('Dot2Uppaal')
 
@@ -27,7 +29,7 @@ def parse_sha(path: str):
             edges.add(Edge.parse_edge(line, locs))
         LOGGER.debug('Found {} edges.'.format(len(edges)))
 
-    new_sha = SHA(SHA_NAME, locs, edges)
+    new_sha = SHA(SHA_NAME, locs, edges, fit_distr())
 
     LOGGER.info("SHA correctly generated.")
 

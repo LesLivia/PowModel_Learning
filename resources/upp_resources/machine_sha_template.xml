@@ -7,17 +7,13 @@ clock E = 0.0;
 double rate = 0.0;
 double w = 0.0;
 
-double get_rate(int distr) {
-    **PDF**
-}
-
-void set_vars(int _w, int distr) {
+void set_vars(int _w, double a, double b, double c, int d) {
     if(_w==STOP) {
         w = 0.0;
         P = 0.0;
     } else {
         w = (_w+1)*100+50;
-        rate = get_rate(distr);
+        rate = random_kde(a, b, c, d);
         P = rate;
     }
 }</declaration>

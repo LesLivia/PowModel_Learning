@@ -1,4 +1,6 @@
-from typing import Set
+from typing import Set, List
+
+from it.polimi.powmodel_learning.mgrs.DistrMgr import KDE_Distr
 
 LOCATION_FORMATTER = 'q_{}'
 FLOW_FORMATTER = 'f_{}'
@@ -67,7 +69,8 @@ class Edge:
 
 
 class SHA:
-    def __init__(self, name: str, locs: Set[Location], edges: Set[Edge]):
+    def __init__(self, name: str, locs: Set[Location], edges: Set[Edge], fit_distr: List[KDE_Distr]):
         self.name = name
         self.locations = locs
         self.edges = edges
+        self.fit_distr = fit_distr
