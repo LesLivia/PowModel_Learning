@@ -53,10 +53,6 @@ def sha_to_upp_tplt(learned_sha: SHA, validation=False):
         lines = machine_tplt.readlines()
         learned_sha_tplt = ''.join(lines)
 
-    if not validation:
-        pass  # TODO
-        # learned_sha_tplt = learned_sha_tplt.replace('**PDF**', fit_distr(plot=True))
-
     locations_str = ''
     x = X_START
     y = Y_START
