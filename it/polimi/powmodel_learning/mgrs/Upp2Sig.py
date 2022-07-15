@@ -85,6 +85,10 @@ def parse_upp_results():
         with open(UPPAAL_OUT_PATH.format(SHA_NAME), 'r') as res_file:
             lines = res_file.readlines()
 
+            e_line = [l for l in lines if l.startswith('Values in ')][0]
+            e_line = e_line.split('mean=')[1].split(':')[0]
+            energy_ci = (float(e_line.split(' steps=')[0]), float(e_line.split(' steps=')[1]))
+
             for key_i, key in enumerate(sig_labels_upp):
                 signals.append([])
                 sig_lines_start_i = [i for i, l in enumerate(lines) if l.__contains__(key)][0] + 1
@@ -104,4 +108,4 @@ def parse_upp_results():
 
     signals = filter_signals(signals)
 
-    return signals
+    return signals, energy_ci
