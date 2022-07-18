@@ -6,6 +6,7 @@ import it.polimi.powmodel_learning.mgrs.Dot2SHA as dot2upp
 import it.polimi.powmodel_learning.mgrs.ResMgr as res
 import it.polimi.powmodel_learning.mgrs.SHA2Upp as sha2upp
 import it.polimi.powmodel_learning.mgrs.VerMgr as ver
+from it.polimi.powmodel_learning.mgrs.DistrMgr import get_benchmark_distr
 from it.polimi.powmodel_learning.mgrs.ValMgr import get_eligible_traces, get_cut_signals
 from utils.logger import Logger
 
@@ -25,6 +26,8 @@ SHA_NAME = sys.argv[1]
 # 1. L*_SHA output is converted into an Uppaal model
 # 2. Available data are analyzed to find traces eligible for validation (i.e., they need to be accepted by the SHA)
 # 3. For each eligible trace, energy consumption is estimated and compared against the original data
+
+benchmark_distr = get_benchmark_distr()
 
 # Parse .dot file
 learned_sha = dot2upp.parse_sha(SHA_PATH.format(SHA_NAME))
@@ -52,7 +55,7 @@ for trace in eligible_traces:
 
     # Analyze Results
     try:
-        res.analyze_results(sigs, file_name=trace[1])
+        res.analyze_results(sigs, benchmark_distr, file_name=trace[1])
     except IndexError:
         LOGGER.error("ERROR WITH TRACE {}".format(trace))
 
