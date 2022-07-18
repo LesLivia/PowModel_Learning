@@ -3,6 +3,7 @@ from typing import List
 
 import it.polimi.powmodel_learning.mgrs.Upp2Sig as upp2sig
 import it.polimi.powmodel_learning.viz.plotter as pltr
+from it.polimi.powmodel_learning.mgrs.DistrMgr import KDE_Distr
 from it.polimi.powmodel_learning.model.sigfeatures import SampledSignal, SignalPoint, Timestamp
 from it.polimi.powmodel_learning.utils.logger import Logger
 
@@ -23,7 +24,7 @@ def fix_sigs(sigs: List[SampledSignal]):
     return sigs
 
 
-def analyze_results(sigs: List[SampledSignal], plot=True, file_name: str = None):
+def analyze_results(sigs: List[SampledSignal], b_distr: KDE_Distr, plot=True, file_name: str = None):
     LOGGER.info('Analyzing Uppaal results...')
 
     sigs = fix_sigs(sigs)
@@ -40,23 +41,22 @@ def analyze_results(sigs: List[SampledSignal], plot=True, file_name: str = None)
 
     in_interval = energy_ci[0] - energy_ci[1] <= sigs[2].points[-1].value <= energy_ci[0] + energy_ci[1]
 
-    LOGGER.info("----- REAL ENERGY CONSUMPTION -----")
-    LOGGER.info("{:.4f}".format(sigs[2].points[-1].value))
-    LOGGER.info("-----------------------------------")
-    LOGGER.info("----- EST. ENERGY CONSUMPTION -----")
-    LOGGER.info("{:.4f}".format(upp_sigs[2][-1].points[-1].value))
-    LOGGER.info("-----------------------------------")
-    LOGGER.info("----- ENERGY ESTIMATION ERROR -----")
-    LOGGER.info("{:.4f}%".format(energy_error))
-    LOGGER.info("-----------------------------------")
-    LOGGER.info("--------- IN EST. MIN/MAX ---------")
-    LOGGER.info("{}".format(in_minmax))
-    LOGGER.info("-----------------------------------")
-    LOGGER.info("----- EST. CONFIDENCE INT. --------")
-    LOGGER.info("{}+-{}".format(energy_ci[0], energy_ci[1]))
-    LOGGER.info("-----------------------------------")
-    LOGGER.info("----- IN EST. CONFIDENCE INT. -----")
-    LOGGER.info("{}".format(in_interval))
-    LOGGER.info("-----------------------------------")
+    b_samples = b_distr.get_samples(100)
+    b_energy_samples = [s * len(sigs[2].points) / 60 for s in b_samples]
+    b_avg_energy = sum(b_energy_samples) / len(b_energy_samples)
+    b_error = abs(sigs[2].points[-1].value - b_avg_energy) / sigs[2].points[-1].value * 100
+    b_in_minmax = min(b_energy_samples) <= sigs[2].points[-1].value <= max(b_energy_samples)
 
-    LOGGER.info('Analysis complete.')
+    LOGGER.info("-----------------------------------")
+    LOGGER.info("REAL ENERGY CONSUMPTION: {:.4f}".format(sigs[2].points[-1].value))
+    LOGGER.info("-----------------------------------")
+    LOGGER.info("(L*_SHA) EST. ENERGY CONSUMPTION: {:.4f}".format(upp_sigs[2][-1].points[-1].value))
+    LOGGER.info("(L*_SHA) ENERGY ESTIMATION ERROR: {:.4f}%".format(energy_error))
+    LOGGER.info("(L*_SHA) IN EST. MIN/MAX: {}".format(in_minmax))
+    LOGGER.info("(L*_SHA) EST. CONFIDENCE INT.: {}+-{}".format(energy_ci[0], energy_ci[1]))
+    LOGGER.info("(L*_SHA) IN EST. CONFIDENCE INT.: {}".format(in_interval))
+    LOGGER.info("-----------------------------------")
+    LOGGER.info("(Benchmark) EST. ENERGY CONSUMPTION: {:.4f}".format(b_avg_energy))
+    LOGGER.info("(Benchmark) ENERGY ESTIMATION ERROR: {:.4f}%".format(b_error))
+    LOGGER.info("(Benchmark) IN EST. MIN/MAX: {}".format(b_in_minmax))
+    LOGGER.info("-----------------------------------")
