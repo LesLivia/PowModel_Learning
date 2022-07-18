@@ -1,5 +1,6 @@
 import configparser
 import sys
+import traceback
 from typing import List
 
 import it.polimi.powmodel_learning.mgrs.Dot2SHA as dot2upp
@@ -57,6 +58,7 @@ for trace in eligible_traces:
     try:
         res.analyze_results(sigs, benchmark_distr, file_name=trace[1])
     except IndexError:
+        traceback.print_exc()
         LOGGER.error("ERROR WITH TRACE {}".format(trace))
 
 LOGGER.info("Done.")
