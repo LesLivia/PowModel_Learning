@@ -5,8 +5,6 @@ import numpy as np
 
 log_name = sys.argv[1]
 
-plt.figure(figsize=(30, 5))
-
 with open(log_name) as log:
     lines = log.readlines()
     errors = [float(line.split(': ')[1].replace('%\n', '')) for line in lines
@@ -25,6 +23,7 @@ with open(log_name) as log:
     print("(L*_SHA) {:.3f}% in min/max interval.".format(avg_inminmax))
     print("(L*_SHA) {:.3f}% in confidence interval.".format(avg_inci))
 
+    plt.figure(figsize=(30, 5))
     plt.hist(errors, bins=50)
     plt.axvline(avg_error, color='k', linestyle='dashed')
     min_ylim, max_ylim = plt.ylim()
@@ -37,7 +36,7 @@ with open(log_name) as log:
 
     b_errors = [float(line.split(': ')[1].replace('%\n', '')) for line in lines
                 if line.__contains__("(Benchmark) ENERGY ESTIMATION ERROR")]
-    b_errors = [x for x in b_errors if x < 100]
+    b_errors = [x for x in b_errors]
     b_in_minmax = [line.split(': ')[1] == 'True\n' for line in lines
                    if line.__contains__("(Benchmark) IN EST. MIN/MAX")]
 
@@ -46,3 +45,14 @@ with open(log_name) as log:
 
     print("(Benchmark) Average error: {:.3f}% on {} eligible traces.".format(b_avg_error, len(b_errors)))
     print("(Benchmark) {:.3f}% in min/max interval.".format(b_avg_inminmax))
+
+    plt.figure(figsize=(30, 5))
+    plt.hist(b_errors, bins=50)
+    plt.axvline(b_avg_error, color='k', linestyle='dashed')
+    min_ylim, max_ylim = plt.ylim()
+    min_xlim, max_xlim = 0, max(plt.xlim()[1], 150)
+    plt.xlim(min_xlim, max_xlim)
+    plt.title("{} traces".format(len(b_errors)))
+    plt.text(b_avg_error + 1.0, max_ylim * 0.9, "Mean {:.1f}%".format(b_avg_error))
+    plt.xticks(np.arange(0, max_xlim, 25))
+    plt.show()
