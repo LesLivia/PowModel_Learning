@@ -1,5 +1,5 @@
 import sys
-
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -9,7 +9,7 @@ with open(log_name) as log:
     lines = log.readlines()
     errors = [float(line.split(': ')[1].replace('%\n', '')) for line in lines
               if line.__contains__("(L*_SHA) ENERGY ESTIMATION ERROR")]
-    errors = [x for x in errors if x < 100]
+    errors = [x for x in errors]
     in_minmax = [line.split(': ')[1] == 'True\n' for line in lines
                  if line.__contains__("(L*_SHA) IN EST. MIN/MAX")]
     in_ci = [line.split(': ')[1] == 'True\n' for line in lines
@@ -56,3 +56,28 @@ with open(log_name) as log:
     plt.text(b_avg_error + 1.0, max_ylim * 0.9, "Mean {:.1f}%".format(b_avg_error))
     plt.xticks(np.arange(0, max_xlim, 25))
     plt.show()
+
+    # IN-DEPTH ANALYSIS
+    better_b_traces = [i for i, e in enumerate(errors) if b_errors[i] < e]
+    better_lsha_traces = [i for i, e in enumerate(errors) if b_errors[i] > e]
+    energies = [float(line.split(': ')[1].replace('%\n', '')) for line in lines
+                if line.__contains__("REAL ENERGY CONSUMPTION:")]
+    plots_path = "/Users/lestingi/PycharmProjects/PowModel_Learning/resources/plots/plots_benchmark/"
+    plots = os.listdir(plots_path)
+    plots = [(i, p) for i, p in enumerate(plots) if i in better_b_traces]
+    energies_1 = [energies[i] for i in better_b_traces]
+    energies_2 = [energies[i] for i in better_lsha_traces]
+
+    fig, ax = plt.subplots(3, 1, figsize=(30, 15))
+    BINS = 75
+    ax[0].hist(energies, bins=BINS)
+    ax[0].set_xticks(np.arange(min(energies), max(energies), 10))
+    ax[1].hist(energies_1, bins=BINS)
+    ax[1].set_xticks(np.arange(min(energies), max(energies), 10))
+    ax[2].hist(energies_2, bins=BINS)
+    ax[2].set_xticks(np.arange(min(energies), max(energies), 10))
+    plt.show()
+
+    print('[{:.2f}, {:.2f}], avg. {:.2f}'.format(min(energies), max(energies), sum(energies) / len(energies)))
+    print('[{:.2f}, {:.2f}], avg. {:.2f}'.format(min(energies_1), max(energies_1), sum(energies_1) / len(energies_1)))
+    print('[{:.2f}, {:.2f}], avg. {:.2f}'.format(min(energies_2), max(energies_2), sum(energies_2) / len(energies_2)))
