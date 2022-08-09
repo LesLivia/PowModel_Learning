@@ -67,7 +67,7 @@ def fit_distr(plot=False):
 
     for d in distr:
         if max(d) - min(d) == 0:
-            rng = np.arange(min(d) - 2.0, max(d) + 2.0, 1.0)
+            rng = np.arange(min(d) - 2.0, max(d) + 2.0, 0.5)
         else:
             rng = np.arange(min(d), max(d), (max(d) - min(d)) / BINS)
 
