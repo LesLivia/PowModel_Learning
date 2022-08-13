@@ -7,9 +7,13 @@ log_name = sys.argv[1]
 
 with open(log_name) as log:
     lines = log.readlines()
+
+    traces = [line.split(': ')[1].replace('\n', '') for line in lines
+              if line.__contains__("-> RESULTS FOR:")]
+
     errors = [float(line.split(': ')[1].replace('%\n', '')) for line in lines
               if line.__contains__("(L*_SHA) ENERGY ESTIMATION ERROR")]
-    errors = [x for x in errors]
+    errors = [x for x in errors if x < 75]
     in_minmax = [line.split(': ')[1] == 'True\n' for line in lines
                  if line.__contains__("(L*_SHA) IN EST. MIN/MAX")]
     in_ci = [line.split(': ')[1] == 'True\n' for line in lines
@@ -68,6 +72,9 @@ with open(log_name) as log:
     energies_1 = [energies[i] for i in better_b_traces]
     energies_2 = [energies[i] for i in better_lsha_traces]
 
+    files_1 = [traces[i] for i in better_b_traces]
+    # print(files_1)
+
     fig, ax = plt.subplots(3, 1, figsize=(30, 15))
     BINS = 75
     ax[0].hist(energies, bins=BINS)
@@ -78,6 +85,11 @@ with open(log_name) as log:
     ax[2].set_xticks(np.arange(min(energies), max(energies), 10))
     plt.show()
 
-    print('[{:.2f}, {:.2f}], avg. {:.2f}'.format(min(energies), max(energies), sum(energies) / len(energies)))
-    print('[{:.2f}, {:.2f}], avg. {:.2f}'.format(min(energies_1), max(energies_1), sum(energies_1) / len(energies_1)))
-    print('[{:.2f}, {:.2f}], avg. {:.2f}'.format(min(energies_2), max(energies_2), sum(energies_2) / len(energies_2)))
+    # print('[{:.2f}, {:.2f}], avg. {:.2f}'.format(min(energies), max(energies), sum(energies) / len(energies)))
+    # print('[{:.2f}, {:.2f}], avg. {:.2f}'.format(min(energies_1), max(energies_1), sum(energies_1) / len(energies_1)))
+    # print('[{:.2f}, {:.2f}], avg. {:.2f}'.format(min(energies_2), max(energies_2), sum(energies_2) / len(energies_2)))
+
+    greater_avg = [i for i, x in enumerate(errors) if x > avg_error]
+    greater_files = [traces[i] for i in greater_avg]
+    greater_files.sort()
+    [print(f) for f in set(greater_files)]

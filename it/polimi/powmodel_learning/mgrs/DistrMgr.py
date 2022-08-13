@@ -81,6 +81,8 @@ def fit_distr(plot=False):
             kde = gaussian_kde(d, bw_method='silverman')
             x = np.linspace(min(rng), max(rng), num=len(rng))
             y = kde(x)
+            if max(kde.pdf(d)) > 1000.0:
+                raise np.linalg.LinAlgError
             new_kde = KDE_Distr(kde.n, kde.factor, d, min(d), max(d), max(kde.pdf(d)))
         except np.linalg.LinAlgError:
             y = [0] * len(rng)
