@@ -11,6 +11,10 @@ config.sections()
 config.read('./resources/config/config.ini')
 config.sections()
 
+SPEED_RANGE = int(config['ENERGY CS']['SPEED_RANGE'])
+MIN_SPEED = int(config['ENERGY CS']['MIN_SPEED'])
+MAX_SPEED = int(config['ENERGY CS']['MAX_SPEED'])
+
 LOGGER = Logger('UppaalModelGenerator')
 
 SHA_NAME = sys.argv[1]
@@ -83,7 +87,16 @@ def sha_to_upp_tplt(learned_sha: SHA, validation=False):
         x1, y1, x2, y2 = edge.start.x, edge.start.y, edge.dest.x, edge.dest.y
         mid_x = abs(x1 - x2) / 2 + min(x1, x2)
         mid_y = abs(y1 - y2) / 2 + min(y1, y2)
-        s_speed = 'STOP' if edge.sync in ['i_0', 'l', 'u'] else edge.sync.split(']')[0].replace('m[', '')
+        if edge.sync == 'i_0?':
+            s_speed = 'STOP'
+        elif edge.sync == 'l?':
+            s_speed = 'LOAD'
+        elif edge.sync == 'u?':
+            s_speed = 'UNLOAD'
+        else:
+            # FIXME: non funziona in tutti i casi credo, ma al momento non sono nelle condizioni giuste.
+            range = int(edge.sync.split(']')[0].replace('m[', ''))
+            s_speed = str((range + 1) * SPEED_RANGE)
         if validation:
             new_edge_str = EDGE_TPLT_VAL.format(start_id, dest_id, mid_x, mid_y, edge.sync)
         else:

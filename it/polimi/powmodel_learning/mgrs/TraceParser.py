@@ -70,7 +70,7 @@ def get_timed_trace(input_file_name: str):
         if i == 0:
             diff_t = 0
         else:
-            diff_t = ((tt.t[i].to_secs() - tt.t[0].to_secs()) - (tt.t[i - 1].to_secs() - tt.t[0].to_secs())) / 60
+            diff_t = int(((tt.t[i].to_secs() - tt.t[0].to_secs()) - (tt.t[i - 1].to_secs() - tt.t[0].to_secs())) / 60)
 
         tt_tup.append((str(diff_t).replace('.0', ''), e_sym))
 
