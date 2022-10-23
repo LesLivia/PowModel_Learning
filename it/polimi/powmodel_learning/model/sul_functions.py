@@ -90,7 +90,7 @@ def parse_ts(ts: str):
 def parse_data(path: str):
     # support method to parse traces sampled by ref query
 
-    energy: SampledSignal = SampledSignal([], label='e')
+    energy: SampledSignal = SampledSignal([], label='E')
     power: SampledSignal = SampledSignal([], label='P')
     speed: SampledSignal = SampledSignal([], label='w')
     pressure: SampledSignal = SampledSignal([], label='pr')
@@ -151,6 +151,25 @@ def parse_data(path: str):
                 last_reading = pt.value
         power.points = power_pts
 
+        fixed_energy: List[SignalPoint] = []
+        # Search first energy pt that is not none
+        if energy.points[0].value is None:
+            i = 0
+            while energy.points[i].value is None:
+                i += 1
+            first_reading = energy.points[i].value
+            last_reading = (energy.points[i].value - first_reading) * 60
+        else:
+            first_reading = energy.points[0].value
+            last_reading = (energy.points[0].value - first_reading) * 60
+        for pt in energy.points:
+            if pt.value is None:
+                fixed_energy.append(SignalPoint(pt.timestamp, last_reading))
+            else:
+                last_reading = (pt.value - first_reading) * 60
+                fixed_energy.append(SignalPoint(pt.timestamp, last_reading))
+        energy.points = fixed_energy
+
         # filter speed signal
         filtered_speed_pts: List[SignalPoint] = []
         last_switch = Timestamp(speed.points[0].timestamp.year, speed.points[0].timestamp.month,
@@ -201,7 +220,7 @@ def parse_data(path: str):
                 inferred_pressure.append(SignalPoint(pt.timestamp, pressure_v))
             pressure = SampledSignal(inferred_pressure, label='pr')
 
-        return [power, filtered_speed, pressure]
+        return [power, filtered_speed, pressure, energy]
 
 
 def get_power_param(segment: List[SignalPoint], flow: FlowCondition):

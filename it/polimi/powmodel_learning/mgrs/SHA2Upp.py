@@ -107,6 +107,10 @@ def sha_to_upp_tplt(learned_sha: SHA, validation=False):
                                             '{:.2f}'.format(dest_fit_distr.max_pdf), edge.dest.distr)
         edges_str += new_edge_str
     learned_sha_tplt = learned_sha_tplt.replace('**TRANSITIONS**', edges_str)
+    # TODO: anche questo da sistemare.
+    speed = '_w;'
+    learned_sha_tplt = learned_sha_tplt.replace('**SPEED**', speed)
+
     return learned_sha_tplt
 
 
