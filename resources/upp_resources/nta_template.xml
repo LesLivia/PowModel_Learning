@@ -119,7 +119,7 @@ void get_next() {
 		<transition>
 			<source ref="id2"/>
 			<target ref="id0"/>
-			<label kind="guard" x="212" y="153">next_i&lt;N_E &amp;&amp; next_e!=STOP</label>
+			<label kind="guard" x="212" y="153">next_i&lt;N_E &amp;&amp; next_e!=STOP &amp;&amp; next_e!=LOAD &amp;&amp; next_e!=UNLOAD</label>
 			<label kind="synchronisation" x="272" y="170">m[next_e]!</label>
 			<label kind="assignment" x="255" y="187">x=0, get_next()</label>
 			<nail x="306" y="153"/>
