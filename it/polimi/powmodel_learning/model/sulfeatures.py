@@ -38,20 +38,16 @@ class SystemUnderLearning:
     #
     # TRACE PROCESSING METHODS
     #
-    def find_chg_pts(self, driver: SampledSignal):
-        timestamps = [pt.timestamp for pt in driver.points]
-        values = [pt.value for pt in driver.points]
+    def find_chg_pts(self, driver: List[SampledSignal]):
+        values = [{pt.timestamp: pt.value for pt in sig.points} for sig in driver]
         chg_pts: List[ChangePoint] = []
 
-        if values[0] > 0:
-            chg_pts.append(ChangePoint(timestamps[0]))
-
         # IDENTIFY CHANGE PTS IN DRIVER OVERLAY
-        prev = values[0]
-        for i in range(1, len(values)):
-            curr = values[i]
+        prev = [sig.points[0].value for sig in driver]
+        for ts in [pt.timestamp for pt in driver[0].points]:
+            curr = [val_dic[ts] for val_dic in values]
             if self.is_chg_pt(curr, prev):
-                chg_pts.append(ChangePoint(timestamps[i]))
+                chg_pts.append(ChangePoint(ts))
             prev = curr
 
         return chg_pts
@@ -60,7 +56,7 @@ class SystemUnderLearning:
         new_signals: List[SampledSignal] = self.parse_f(path)
         self.signals.append(new_signals)
 
-        driver_sig = [sig for sig in new_signals if sig.label == self.driver][0]
+        driver_sig = [sig for sig in new_signals if sig.label in self.driver]
 
         chg_pts = self.find_chg_pts(driver_sig)
         events = [self.label_f(self.events, new_signals, pt.t) for pt in chg_pts]
@@ -92,7 +88,7 @@ class SystemUnderLearning:
             else:
                 end_timestamp = main_sig.points[-1].timestamp.to_secs()
 
-            segment = [pt for pt in main_sig.points if start_timestamp <= pt.timestamp.to_secs() <= end_timestamp]
+            segment = [pt for pt in main_sig.points if start_timestamp <= pt.timestamp.to_secs() < end_timestamp]
             segments.append(segment)
         else:
             return segments
@@ -100,7 +96,7 @@ class SystemUnderLearning:
     #
     # VISUALIZATION METHODS
     #
-    def plot_trace(self, i=None, title=None, xlabel=None, ylabel=None):
+    def plot_trace(self, index, title=None, xlabel=None, ylabel=None):
         plt.figure(figsize=(10, 5))
 
         if title is not None:
@@ -111,21 +107,21 @@ class SystemUnderLearning:
             plt.ylabel(ylabel, fontsize=18)
 
         signal_to_plot = [i for i, s in enumerate(self.signals[0]) if s.label == self.vars[0].label][0]
-        to_plot = [self.timed_traces[i]] if i is not None else self.timed_traces
-        for i, tt in enumerate(to_plot):
-            sig = self.signals[i][signal_to_plot].points
-            t = [pt.timestamp.to_secs() for pt in sig]
-            v = [pt.value for pt in sig]
+        tt = self.timed_traces[index]
 
-            plt.xlim(min(t) - 5, max(t) + 5)
-            plt.ylim(0, max(v) + .05)
-            plt.plot(t, v, 'k', linewidth=.5)
+        sig = self.signals[index][signal_to_plot].points
+        t = [pt.timestamp.to_secs() for pt in sig]
+        v = [pt.value for pt in sig]
 
-            plt.vlines([ts.to_secs() for ts in tt.t], [0] * len(tt), [max(v)] * len(tt), 'b', '--')
-            for index, evt in enumerate(tt.e):
-                plt.text(tt.t[index].to_secs() - 7, max(v) + .01, str(evt), fontsize=18, color='blue')
+        plt.xlim(min(t) - 5, max(t) + 5)
+        plt.ylim(0, max(v) + .05)
+        plt.plot(t, v, 'k', linewidth=.5)
 
-            plt.show()
+        plt.vlines([ts.to_secs() for ts in tt.t], [0] * len(tt), [max(v)] * len(tt), 'b', '--')
+        for index, evt in enumerate(tt.e):
+            plt.text(tt.t[index].to_secs() - 7, max(v) + .01, str(evt), fontsize=18, color='blue')
+
+        plt.show()
 
     def plot_distributions(self):
         for flow in self.flows[0]:

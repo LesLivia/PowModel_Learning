@@ -34,6 +34,9 @@ class Timestamp:
     def __lt__(self, other):
         return self.to_secs() < other.to_secs()
 
+    def __sub__(self, other):
+        return self.to_secs() - other.to_secs()
+
 
 class SignalPoint:
     def __init__(self, t: Timestamp, val: float):
@@ -45,9 +48,6 @@ class SignalPoint:
 
     def __eq__(self, other):
         return self.timestamp == other.timestamp and self.value == other.value
-
-    def __hash__(self):
-        return hash(str(self))
 
 
 class SampledSignal:
