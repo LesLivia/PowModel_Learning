@@ -27,12 +27,14 @@ class Location:
     @staticmethod
     def parse_loc(line: str):
         name = line.split(' ')[0].replace('\t', '')
-        l_id = int(name.split('_')[1]) if name != '__init__' else 999
-        label = line.split('<br/><b>')[1].replace('</b></FONT>>]\n', '')
         if name != '__init__':
+            l_id = int(name.split('_')[1])
+            label = line.split('<br/><b>')[1].replace('</b></FONT>>]\n', '')
             flow = int(label.split(', ')[0].replace('f_', ''))
             distr = int(label.split(', ')[1].replace('D_', ''))
         else:
+            l_id = 999
+            label = '__init__'
             flow = None
             distr = None
 
