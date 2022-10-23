@@ -74,4 +74,4 @@ def get_timed_trace(input_file_name: str):
 
         tt_tup.append((str(diff_t).replace('.0', ''), e_sym))
 
-    return tt_tup, [energy_cs.signals[-1][0], energy_cs.signals[-1][1], energy_cs.signals[-1][3]]
+    return tt_tup, [energy_cs.signals[-1][0], energy_cs.signals[-1][1], energy_cs.signals[-1][2]]
