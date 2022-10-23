@@ -7,7 +7,7 @@
 
 // Spindle speed ranges
 const int N_W = 59; 
-chan i_0, m[N_W];
+chan l, u, i_0, m[N_W];
 
 /**
 ** TRACE
@@ -76,6 +76,22 @@ void get_next() {
 			<target ref="id0"/>
 			<label kind="guard" x="221" y="-8">next_i&lt;N_E &amp;&amp; next_e==STOP</label>
 			<label kind="synchronisation" x="297" y="-25">i_0!</label>
+			<label kind="assignment" x="263" y="-42">x=0, get_next()</label>
+			<nail x="306" y="17"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="guard" x="221" y="-8">next_i&lt;N_E &amp;&amp; next_e==STOP</label>
+			<label kind="synchronisation" x="297" y="-25">l!</label>
+			<label kind="assignment" x="263" y="-42">x=0, get_next()</label>
+			<nail x="306" y="17"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="guard" x="221" y="-8">next_i&lt;N_E &amp;&amp; next_e==STOP</label>
+			<label kind="synchronisation" x="297" y="-25">u!</label>
 			<label kind="assignment" x="263" y="-42">x=0, get_next()</label>
 			<nail x="306" y="17"/>
 		</transition>

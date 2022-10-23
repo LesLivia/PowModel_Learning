@@ -1,5 +1,6 @@
-import sys
 import os
+import sys
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -13,7 +14,7 @@ with open(log_name) as log:
 
     errors = [float(line.split(': ')[1].replace('%\n', '')) for line in lines
               if line.__contains__("(L*_SHA) ENERGY ESTIMATION ERROR")]
-    errors = [x for x in errors if x < 75]
+    errors = [x for x in errors]
     in_minmax = [line.split(': ')[1] == 'True\n' for line in lines
                  if line.__contains__("(L*_SHA) IN EST. MIN/MAX")]
     in_ci = [line.split(': ')[1] == 'True\n' for line in lines

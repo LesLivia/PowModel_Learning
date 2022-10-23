@@ -83,7 +83,7 @@ def sha_to_upp_tplt(learned_sha: SHA, validation=False):
         x1, y1, x2, y2 = edge.start.x, edge.start.y, edge.dest.x, edge.dest.y
         mid_x = abs(x1 - x2) / 2 + min(x1, x2)
         mid_y = abs(y1 - y2) / 2 + min(y1, y2)
-        s_speed = 'STOP' if edge.sync.startswith('i') else edge.sync.split(']')[0].replace('m[', '')
+        s_speed = 'STOP' if edge.sync in ['i_0', 'l', 'u'] else edge.sync.split(']')[0].replace('m[', '')
         if validation:
             new_edge_str = EDGE_TPLT_VAL.format(start_id, dest_id, mid_x, mid_y, edge.sync)
         else:
