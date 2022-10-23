@@ -43,8 +43,10 @@ for i in range(MIN_SPEED, MAX_SPEED, SPEED_RANGE):
 spindle_off = Event('', 'stop', 'i_0')
 
 events.append(spindle_off)
+events.append(Event('', 'load', 'l'))
+events.append(Event('', 'unload', 'u'))
 
-DRIVER_SIG = 'w'
+DRIVER_SIG = ['w', 'pr']
 DEFAULT_M = 0
 DEFAULT_DISTR = 0
 
@@ -64,7 +66,7 @@ def get_timed_trace(input_file_name: str):
         tt.e = [Event('', '', 'i_0')] + tt.e
 
     for i, event in enumerate(tt.e):
-        e_sym = 'STOP' if event.symbol == 'i_0' else event.symbol.split('_')[1]
+        e_sym = 'STOP' if event.symbol in ['i_0', 'l', 'u'] else event.symbol.split('_')[1]
         if i == 0:
             diff_t = 0
         else:
