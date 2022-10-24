@@ -18,7 +18,7 @@ const int UNLOAD = -3;
 
 // Number of events
 const int N_E = **N_EVENTS**
-const int TRACE[N_E][2] = **TRACE**
+const int TRACE[N_E] = **TRACE**
 const int TAU = **TIME_BOUND**
 
 /**
@@ -32,21 +32,17 @@ double max(double x,double y) {
 </declaration>
 	<template>
 		<name x="5" y="5">Program</name>
-		<declaration>clock x;
-
-int T = 0;
-int next_i = -1;
+		<declaration>int next_i = -1;
 int next_e = -1;
 
 void get_next() {
     next_i++;
     if(next_i&gt;=N_E) return;
-    next_e = TRACE[next_i][0];
-    T = TRACE[next_i][1];
+    next_e = TRACE[next_i];
 }</declaration>
 		<location id="id0" x="212" y="85">
 			<name x="153" y="34">working</name>
-			<label kind="invariant" x="170" y="51">x&lt;=T</label>
+			<urgent/>
 		</location>
 		<location id="id1" x="0" y="85">
 			<name x="-10" y="51">_init_</name>
@@ -70,7 +66,7 @@ void get_next() {
 			<target ref="id0"/>
 			<label kind="guard" x="212" y="153">next_i&lt;N_E &amp;&amp; next_e!=STOP &amp;&amp; next_e!=LOAD &amp;&amp; next_e!=UNLOAD</label>
 			<label kind="synchronisation" x="272" y="170">m[next_e]!</label>
-			<label kind="assignment" x="255" y="187">x=0, get_next()</label>
+			<label kind="assignment" x="255" y="187">get_next()</label>
 			<nail x="306" y="153"/>
 		</transition>
 		<transition>
@@ -78,15 +74,15 @@ void get_next() {
 			<target ref="id0"/>
 			<label kind="guard" x="221" y="-8">next_i&lt;N_E &amp;&amp; next_e==STOP</label>
 			<label kind="synchronisation" x="297" y="-25">i_0!</label>
-			<label kind="assignment" x="263" y="-42">x=0, get_next()</label>
-			<nail x="306" y="17"/>
+			<label kind="assignment" x="263" y="-42">get_next()</label>
+			<nail x="306" y="0"/>
 		</transition>
 		<transition>
 			<source ref="id2"/>
 			<target ref="id0"/>
 			<label kind="guard" x="221" y="-8">next_i&lt;N_E &amp;&amp; next_e==LOAD</label>
 			<label kind="synchronisation" x="297" y="-25">l!</label>
-			<label kind="assignment" x="263" y="-42">x=0, get_next()</label>
+			<label kind="assignment" x="263" y="-42">get_next()</label>
 			<nail x="306" y="17"/>
 		</transition>
 		<transition>
@@ -94,18 +90,17 @@ void get_next() {
 			<target ref="id0"/>
 			<label kind="guard" x="221" y="-8">next_i&lt;N_E &amp;&amp; next_e==UNLOAD</label>
 			<label kind="synchronisation" x="297" y="-25">u!</label>
-			<label kind="assignment" x="263" y="-42">x=0, get_next()</label>
-			<nail x="306" y="17"/>
+			<label kind="assignment" x="263" y="-42">get_next()</label>
+			<nail x="306" y="34"/>
 		</transition>
 		<transition>
 			<source ref="id0"/>
 			<target ref="id2"/>
-			<label kind="guard" x="289" y="59">x&gt;=T</label>
 		</transition>
 		<transition>
 			<source ref="id1"/>
 			<target ref="id0"/>
-			<label kind="assignment" x="42" y="85">x=0, get_next()</label>
+			<label kind="assignment" x="42" y="85">get_next()</label>
 		</transition>
 	</template>
 **MACHINE**

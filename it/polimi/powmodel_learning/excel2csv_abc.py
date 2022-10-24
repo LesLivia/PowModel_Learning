@@ -1,9 +1,8 @@
 import pandas as pd
-import shutil
 
 in_excel_path = './resources/simulated_data/{}.xlsx'
 
-file_name = 'part_i'
+file_name = 'part_iii'
 
 columns = ['PART ib',
            'ID',
@@ -26,17 +25,14 @@ to_csv_cols = ['Simulated OP', 'Simulated time stamp', 'Simulated speed', 'Simul
 out_excel_path = './resources/simulated_data/{}.xlsx'
 out_csv_path = './resources/simulated_data/{}.csv'
 
-N_TRACCE = 3
-copy = False
-
 instr = input("Action: ")
-i = 0
+i = 6
 
 while instr != 'q':
     print('Generating TRACE {}...'.format(i + 1))
     orig_df = pd.read_excel(io=in_excel_path.format(file_name))
     df = orig_df[columns]
-    df[to_csv_cols].to_csv(out_csv_path.format('_' + file_name + '_' + str(i + 1)))
+    df[to_csv_cols].to_csv(out_csv_path.format(file_name + '_' + str(i + 1)))
     orig_df.to_excel(in_excel_path.format(file_name + '_' + str(i + 1)))
     print(df[['Simulated speed']].values[100])
     instr = input("Action: ")

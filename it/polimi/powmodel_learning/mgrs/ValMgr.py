@@ -72,8 +72,8 @@ def get_subtraces(tt, sigs):
             subtrace = tt[i:i + l]
             if len(subtrace) == l:
                 first_ts = sigs[0].points[0].timestamp.to_secs()
-                start_ts = first_ts + sum([int(x[0]) for j, x in enumerate(tt) if j <= i]) * 60
-                end_ts = first_ts + sum([int(x[0]) for j, x in enumerate(tt) if j <= i + l]) * 60
+                start_ts = first_ts + sum([float(x[0]) for j, x in enumerate(tt) if j <= i]) * 60
+                end_ts = first_ts + sum([float(x[0]) for j, x in enumerate(tt) if j <= i + l]) * 60
                 subtraces.append((subtrace, start_ts, end_ts))
             else:
                 break
@@ -91,7 +91,7 @@ def verify_trace(learned_sha: SHA, traces):
             with open(RESULTS_PATH.format(SHA_NAME)) as res_f:
                 result = [l for l in res_f.readlines() if l.__contains__('Formula is')][0]
                 if not result.__contains__('NOT'):
-                    s_tt[0][0] = ('0', s_tt[0][0][1])
+                    # s_tt[0][0] = ('0', s_tt[0][0][1])
                     eligible_traces.append((trace[0], trace[1], s_tt))
 
     return eligible_traces

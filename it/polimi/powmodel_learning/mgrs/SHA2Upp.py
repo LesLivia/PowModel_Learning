@@ -173,14 +173,22 @@ def generate_upp_model(learned_sha: SHA, trace_day: str, validation=False, tt=No
 
     nta_tplt = nta_tplt.replace('**N_EVENTS**', '{};\n'.format(len(tt)))
     tt_str = '{'
+    times_str = '{'
     for i, tup in enumerate(tt):
-        tt_str += '{' + tup[1] + ',' + tup[0] + '}'
+        tt_str += tup[1]
+        if not validation:
+            times_str += tup[0]
         if i < len(tt) - 1:
             tt_str += ','
+            if not validation:
+                times_str += ','
     tt_str += '};\n'
+    times_str += '};\n'
     nta_tplt = nta_tplt.replace('**TRACE**', tt_str)
+    nta_tplt = nta_tplt.replace('**TIMES**', times_str)
+
     if TAU is None:
-        time_bound = max(sum([int(tup[0]) for tup in tt]), 60)
+        time_bound = max(sum([int(float(tup[0])) for tup in tt]), 60)
     else:
         time_bound = TAU
     nta_tplt = nta_tplt.replace('**TIME_BOUND**', str(time_bound) + ';\n')
