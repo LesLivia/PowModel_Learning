@@ -6,7 +6,7 @@ import sys
 from tqdm import tqdm
 
 from it.polimi.powmodel_learning.mgrs.TraceParser import energy_cs
-from polimi.powmodel_learning.model.sul_functions import parse_ts
+from it.polimi.powmodel_learning.model.sul_functions import parse_ts
 from it.polimi.powmodel_learning.utils.logger import Logger
 
 LOGGER = Logger('Data Preparation Manager')

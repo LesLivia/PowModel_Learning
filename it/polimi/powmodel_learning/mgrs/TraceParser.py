@@ -4,7 +4,7 @@ from typing import List, Tuple
 from it.polimi.powmodel_learning.model.lshafeatures import FlowCondition, NormalDistribution, RealValuedVar
 from it.polimi.powmodel_learning.model.sigfeatures import Event, Timestamp
 from it.polimi.powmodel_learning.model.sulfeatures import SystemUnderLearning
-from polimi.powmodel_learning.model.sul_functions import parse_data, label_event, get_power_param, is_chg_pt
+from it.polimi.powmodel_learning.model.sul_functions import parse_data, label_event, get_power_param, is_chg_pt
 
 config = configparser.ConfigParser()
 config.sections()
