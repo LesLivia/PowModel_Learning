@@ -9,7 +9,7 @@ import numpy as np
 from scipy.stats import gaussian_kde
 
 from it.polimi.powmodel_learning.model.sigfeatures import SampledSignal
-from it.polimi.powmodel_learning.model.sul_functions import parse_data
+from polimi.powmodel_learning.model.sul_functions import parse_data
 
 config = configparser.ConfigParser()
 config.sections()

@@ -3,55 +3,94 @@ from typing import List, Tuple
 
 from it.polimi.powmodel_learning.model.lshafeatures import FlowCondition, NormalDistribution, RealValuedVar
 from it.polimi.powmodel_learning.model.sigfeatures import Event, Timestamp
-from it.polimi.powmodel_learning.model.sul_functions import parse_data, label_event, get_power_param, is_chg_pt
 from it.polimi.powmodel_learning.model.sulfeatures import SystemUnderLearning
+from polimi.powmodel_learning.model.sul_functions import parse_data, label_event, get_power_param, is_chg_pt
 
 config = configparser.ConfigParser()
 config.sections()
 config.read('./resources/config/config.ini')
 config.sections()
 
+CS_VERSION = config['SUL CONFIGURATION']['CS_VERSION']
 SPEED_RANGE = int(config['ENERGY CS']['SPEED_RANGE'])
 MIN_SPEED = int(config['ENERGY CS']['MIN_SPEED'])
 MAX_SPEED = int(config['ENERGY CS']['MAX_SPEED'])
 
+if CS_VERSION == 'REAL':
+    def pwr_model(interval: List[Timestamp], P_0):
+        interval = [ts.to_secs() for ts in interval]
+        AVG_PW = 1.0
+        return [AVG_PW] * len(interval)
 
-def pwr_model(interval: List[Timestamp], P_0):
-    interval = [ts.to_secs() for ts in interval]
-    AVG_PW = 1.0
-    return [AVG_PW] * len(interval)
+
+    # define flow conditions
+    on_fc: FlowCondition = FlowCondition(0, pwr_model)
+
+    # define distributions
+    off_distr = NormalDistribution(0, 0.0, 0.0)
+
+    model2distr = {0: []}
+    power = RealValuedVar([on_fc], [], model2distr, label='P')
+
+    # define events
+    events: List[Event] = []
+    for i in range(MIN_SPEED, MAX_SPEED, SPEED_RANGE):
+        if i < MAX_SPEED - SPEED_RANGE:
+            new_guard = '{}<=w<{}'.format(i, i + SPEED_RANGE)
+        else:
+            new_guard = '{}<=w'.format(i)
+        events.append(Event(new_guard, 'start', 'm_{}'.format(len(events))))
+
+    spindle_off = Event('', 'stop', 'i_0')
+
+    events.append(spindle_off)
+    events.append(Event('', 'load', 'l'))
+    events.append(Event('', 'unload', 'u'))
+
+    DRIVER_SIG = ['w', 'pr']
+    DEFAULT_M = 0
+    DEFAULT_DISTR = 0
+
+    args = {'name': 'energy', 'driver': DRIVER_SIG, 'default_m': DEFAULT_M, 'default_d': DEFAULT_DISTR}
+    energy_cs = SystemUnderLearning([power], events, parse_data, label_event, get_power_param, is_chg_pt, args=args)
+else:
+    def pwr_model(interval: List[Timestamp], P_0):
+        interval = [ts.to_secs() for ts in interval]
+        AVG_PW = 1.0
+        return [AVG_PW] * len(interval)
 
 
-# define flow conditions
-on_fc: FlowCondition = FlowCondition(0, pwr_model)
+    # define flow conditions
+    on_fc: FlowCondition = FlowCondition(0, pwr_model)
 
-# define distributions
-off_distr = NormalDistribution(0, 0.0, 0.0)
+    # define distributions
+    off_distr = NormalDistribution(0, 0.0, 0.0)
 
-model2distr = {0: []}
-power = RealValuedVar([on_fc], [], model2distr, label='P')
+    model2distr = {0: []}
+    power = RealValuedVar([on_fc], [], model2distr, label='P')
 
-# define events
-events: List[Event] = []
-for i in range(MIN_SPEED, MAX_SPEED, SPEED_RANGE):
-    if i < MAX_SPEED - SPEED_RANGE:
-        new_guard = '{}<=w<{}'.format(i, i + SPEED_RANGE)
-    else:
-        new_guard = '{}<=w'.format(i)
-    events.append(Event(new_guard, 'start', 'm_{}'.format(len(events))))
+    # define events
+    events: List[Event] = []
+    for i in range(MIN_SPEED, MAX_SPEED, SPEED_RANGE):
+        if i < MAX_SPEED - SPEED_RANGE:
+            new_guard = '{}<=w<{}'.format(i, i + SPEED_RANGE)
+        else:
+            new_guard = '{}<=w'.format(i)
+        events.append(Event(new_guard, 'start', 'm_{}'.format(len(events))))
 
-spindle_off = Event('', 'stop', 'i_0')
+    spindle_off = Event('', 'stop', 'i_0')
 
-events.append(spindle_off)
-events.append(Event('', 'load', 'l'))
-events.append(Event('', 'unload', 'u'))
+    events.append(spindle_off)
 
-DRIVER_SIG = ['w', 'pr']
-DEFAULT_M = 0
-DEFAULT_DISTR = 0
+    events.append(Event('', 'load', 'l'))
+    events.append(Event('', 'unload', 'u'))
 
-args = {'name': 'energy', 'driver': DRIVER_SIG, 'default_m': DEFAULT_M, 'default_d': DEFAULT_DISTR}
-energy_cs = SystemUnderLearning([power], events, parse_data, label_event, get_power_param, is_chg_pt, args=args)
+    DRIVER_SIG = ['w', 'pr']
+    DEFAULT_M = 0
+    DEFAULT_DISTR = 0
+
+    args = {'name': 'energy', 'driver': DRIVER_SIG, 'default_m': DEFAULT_M, 'default_d': DEFAULT_DISTR}
+    energy_cs = SystemUnderLearning([power], events, parse_data, label_event, get_power_param, is_chg_pt, args=args)
 
 TEST_PATH = config['MODEL GENERATION']['TRACE_PATH']
 

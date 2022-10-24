@@ -33,7 +33,7 @@ else:
 def parse_traces():
     folder_path = TEST_PATH.split('{')[0]
     csv_files = os.listdir(folder_path)
-    csv_files = [f for f in csv_files if f.__contains__('W') and not f.startswith('_')]
+    csv_files = [f for f in csv_files if (f.__contains__('W') or f.__contains__('part')) and not f.startswith('_')]
     csv_files.sort()
     if N_DAYS is not None:
         csv_files = csv_files[:N_DAYS]

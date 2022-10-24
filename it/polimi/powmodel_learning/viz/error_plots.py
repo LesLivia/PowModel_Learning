@@ -6,6 +6,8 @@ import numpy as np
 
 log_name = sys.argv[1]
 
+BINS = 10
+
 with open(log_name) as log:
     lines = log.readlines()
 
@@ -29,12 +31,12 @@ with open(log_name) as log:
     print("(L*_SHA) {:.3f}% in confidence interval.".format(avg_inci))
 
     plt.figure(figsize=(30, 5))
-    plt.hist(errors, bins=50)
+    plt.hist(errors, bins=BINS, density=True)
     plt.axvline(avg_error, color='k', linestyle='dashed')
     min_ylim, max_ylim = plt.ylim()
-    min_xlim, max_xlim = 0, max(plt.xlim()[1], 150)
+    min_xlim, max_xlim = 0, max(plt.xlim()[1], 100)
     plt.xlim(min_xlim, max_xlim)
-    plt.title("{} traces".format(len(errors)))
+    plt.title("L*_SHA ERRORS")
     plt.text(avg_error + 1.0, max_ylim * 0.9, "Mean {:.1f}%".format(avg_error))
     plt.xticks(np.arange(0, max_xlim, 25))
     plt.show()
@@ -52,45 +54,45 @@ with open(log_name) as log:
     print("(Benchmark) {:.3f}% in min/max interval.".format(b_avg_inminmax))
 
     plt.figure(figsize=(30, 5))
-    plt.hist(b_errors, bins=50)
+    plt.hist(b_errors, bins=BINS, density=True)
     plt.axvline(b_avg_error, color='k', linestyle='dashed')
     min_ylim, max_ylim = plt.ylim()
-    min_xlim, max_xlim = 0, max(plt.xlim()[1], 150)
+    min_xlim, max_xlim = 0, max(plt.xlim()[1], 100)
     plt.xlim(min_xlim, max_xlim)
-    plt.title("{} traces".format(len(b_errors)))
+    plt.title("BENCHMARK ERRORS")
     plt.text(b_avg_error + 1.0, max_ylim * 0.9, "Mean {:.1f}%".format(b_avg_error))
     plt.xticks(np.arange(0, max_xlim, 25))
     plt.show()
 
     # IN-DEPTH ANALYSIS
-    better_b_traces = [i for i, e in enumerate(errors) if b_errors[i] < e]
-    better_lsha_traces = [i for i, e in enumerate(errors) if b_errors[i] > e]
-    energies = [float(line.split(': ')[1].replace('%\n', '')) for line in lines
-                if line.__contains__("REAL ENERGY CONSUMPTION:")]
-    plots_path = "/Users/lestingi/PycharmProjects/PowModel_Learning/resources/plots/plots_benchmark/"
-    plots = os.listdir(plots_path)
-    plots = [(i, p) for i, p in enumerate(plots) if i in better_b_traces]
-    energies_1 = [energies[i] for i in better_b_traces]
-    energies_2 = [energies[i] for i in better_lsha_traces]
-
-    files_1 = [traces[i] for i in better_b_traces]
-    # print(files_1)
-
-    fig, ax = plt.subplots(3, 1, figsize=(30, 15))
-    BINS = 75
-    ax[0].hist(energies, bins=BINS)
-    ax[0].set_xticks(np.arange(min(energies), max(energies), 10))
-    ax[1].hist(energies_1, bins=BINS)
-    ax[1].set_xticks(np.arange(min(energies), max(energies), 10))
-    ax[2].hist(energies_2, bins=BINS)
-    ax[2].set_xticks(np.arange(min(energies), max(energies), 10))
-    plt.show()
-
-    # print('[{:.2f}, {:.2f}], avg. {:.2f}'.format(min(energies), max(energies), sum(energies) / len(energies)))
-    # print('[{:.2f}, {:.2f}], avg. {:.2f}'.format(min(energies_1), max(energies_1), sum(energies_1) / len(energies_1)))
-    # print('[{:.2f}, {:.2f}], avg. {:.2f}'.format(min(energies_2), max(energies_2), sum(energies_2) / len(energies_2)))
-
-    greater_avg = [i for i, x in enumerate(errors) if x > avg_error]
-    greater_files = [traces[i] for i in greater_avg]
-    greater_files.sort()
-    [print(f) for f in set(greater_files)]
+    # better_b_traces = [i for i, e in enumerate(errors) if b_errors[i] < e]
+    # better_lsha_traces = [i for i, e in enumerate(errors) if b_errors[i] > e]
+    # energies = [float(line.split(': ')[1].replace('%\n', '')) for line in lines
+    #             if line.__contains__("REAL ENERGY CONSUMPTION:")]
+    # plots_path = "/Users/lestingi/PycharmProjects/PowModel_Learning/resources/plots/plots_benchmark/"
+    # plots = os.listdir(plots_path)
+    # plots = [(i, p) for i, p in enumerate(plots) if i in better_b_traces]
+    # energies_1 = [energies[i] for i in better_b_traces]
+    # energies_2 = [energies[i] for i in better_lsha_traces]
+    #
+    # files_1 = [traces[i] for i in better_b_traces]
+    # # print(files_1)
+    #
+    # fig, ax = plt.subplots(3, 1, figsize=(30, 15))
+    # BINS = 75
+    # ax[0].hist(energies, bins=BINS)
+    # ax[0].set_xticks(np.arange(min(energies), max(energies), 10))
+    # ax[1].hist(energies_1, bins=BINS)
+    # ax[1].set_xticks(np.arange(min(energies), max(energies), 10))
+    # ax[2].hist(energies_2, bins=BINS)
+    # ax[2].set_xticks(np.arange(min(energies), max(energies), 10))
+    # plt.show()
+    #
+    # # print('[{:.2f}, {:.2f}], avg. {:.2f}'.format(min(energies), max(energies), sum(energies) / len(energies)))
+    # # print('[{:.2f}, {:.2f}], avg. {:.2f}'.format(min(energies_1), max(energies_1), sum(energies_1) / len(energies_1)))
+    # # print('[{:.2f}, {:.2f}], avg. {:.2f}'.format(min(energies_2), max(energies_2), sum(energies_2) / len(energies_2)))
+    #
+    # greater_avg = [i for i, x in enumerate(errors) if x > avg_error]
+    # greater_files = [traces[i] for i in greater_avg]
+    # greater_files.sort()
+    # [print(f) for f in set(greater_files)]
