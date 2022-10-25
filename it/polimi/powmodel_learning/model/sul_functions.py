@@ -340,10 +340,10 @@ else:
                     pressure.points.append(SignalPoint(ts, pressure_v))
 
             for i, pt in enumerate(power.points):
-                if len(energy.points) == 0:
-                    energy.points.append(SignalPoint(pt.timestamp, pt.value/40))
+                if i == 0:
+                    energy.points.append(SignalPoint(pt.timestamp, pt.value/1000))
                 else:
-                    energy.points.append(SignalPoint(pt.timestamp, energy.points[-1].value + pt.value/40))
+                    energy.points.append(SignalPoint(pt.timestamp, energy.points[-1].value + pt.value/1000))
 
             return [power, speed, pressure, energy]
 

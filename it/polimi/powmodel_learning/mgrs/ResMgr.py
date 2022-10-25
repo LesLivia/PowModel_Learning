@@ -14,6 +14,9 @@ config.sections()
 config.read('./resources/config/config.ini')
 config.sections()
 
+CS_VERSION = config['SUL CONFIGURATION']['CS_VERSION']
+N = int(config['MODEL VERIFICATION']['N'])
+
 
 def fix_sigs(sigs: List[SampledSignal]):
     for sig in sigs:
@@ -41,8 +44,13 @@ def analyze_results(sigs: List[SampledSignal], b_distr: KDE_Distr, plot=True, fi
 
     in_interval = energy_ci[0] - energy_ci[1] <= sigs[2].points[-1].value <= energy_ci[0] + energy_ci[1]
 
-    b_samples = b_distr.get_samples(100)
-    b_energy_samples = [s * len(sigs[2].points) / 60 for s in b_samples]
+    b_samples = b_distr.get_samples(N)
+
+    if CS_VERSION == 'REAL':
+        b_energy_samples = [s * len(sigs[2].points) / 60 for s in b_samples]
+    else:
+        b_energy_samples = [s * len(sigs[2].points) / 1000 * 1.2 for s in b_samples]
+
     b_avg_energy = sum(b_energy_samples) / len(b_energy_samples)
     b_error = abs(sigs[2].points[-1].value - b_avg_energy) / sigs[2].points[-1].value * 100
     b_in_minmax = min(b_energy_samples) <= sigs[2].points[-1].value <= max(b_energy_samples)

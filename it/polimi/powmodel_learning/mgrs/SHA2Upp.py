@@ -11,6 +11,9 @@ config.sections()
 config.read('./resources/config/config.ini')
 config.sections()
 
+CS_VERSION = config['SUL CONFIGURATION']['CS_VERSION']
+N = int(config['MODEL VERIFICATION']['N'])
+
 SPEED_RANGE = int(config['ENERGY CS']['SPEED_RANGE'])
 MIN_SPEED = int(config['ENERGY CS']['MIN_SPEED'])
 MAX_SPEED = int(config['ENERGY CS']['MAX_SPEED'])
@@ -19,7 +22,7 @@ LOGGER = Logger('UppaalModelGenerator')
 
 SHA_NAME = sys.argv[1]
 
-NTA_TPLT_PATH = config['MODEL GENERATION']['UPPAAL_TPLT_PATH']
+NTA_TPLT_PATH = config['MODEL GENERATION']['UPPAAL_TPLT_PATH'].format(CS_VERSION)
 NTA_TPLT_NAME = 'nta_template.xml'
 NTA_TPLT_NAME_VAL = 'nta_template_val.xml'
 MACHINE_TPLT_NAME = 'machine_sha_template.xml'
@@ -30,7 +33,7 @@ LOCATION_TPLT = """<location id="{}" x="{}" y="{}">\n\t<name x="{}" y="{}">{}</n
 
 LOCATION_TPLT_VAL = """<location id="{}" x="{}" y="{}">\n\t<name x="{}" y="{}">{}</name></location>\n"""
 
-QUERY_TPLT = """E[<=TAU;100](max: m_1.E)\nsimulate[<=TAU; 100]{m_1.w, m_1.P, m_1.E}"""
+QUERY_TPLT = """E[<=TAU;{}](max: m_1.E/(1000*1.7)*60)\nsimulate[<=TAU; {}]{m_1.w, m_1.P, m_1.E/(1000*1.7)*60}"""
 
 QUERY_TPLT_VAL = """A<>(p_1.next_i==N_E)"""
 
@@ -119,7 +122,7 @@ def generate_query_file(validation=False):
         if validation:
             q_file.write(QUERY_TPLT_VAL)
         else:
-            q_file.write(QUERY_TPLT)
+            q_file.write(QUERY_TPLT.replace('{}', str(N)))
 
 
 def generate_upp_model(learned_sha: SHA, trace_day: str, validation=False, tt=None, sigs=None, TAU=None):

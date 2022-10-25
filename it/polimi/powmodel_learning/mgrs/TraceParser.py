@@ -100,9 +100,10 @@ def get_timed_trace(input_file_name: str):
     tt = energy_cs.timed_traces[-1]
     tt_tup: List[Tuple[str, str]] = []
 
-    if len(tt) > 0 and tt.t[0].min > 0:
-        tt.t = [Timestamp(tt.t[0].year, tt.t[0].month, tt.t[0].day, tt.t[0].hour, 0, 0)] + tt.t
-        tt.e = [Event('', '', 'i_0')] + tt.e
+    # if len(tt) > 0 and tt.t[0].min > 0:
+    #    # FIXME: non mi convince.
+    #    tt.t = [Timestamp(tt.t[0].year, tt.t[0].month, tt.t[0].day, tt.t[0].hour, 0, 0)] + tt.t
+    #    tt.e = [Event('', '', 'i_0')] + tt.e
 
     for i, event in enumerate(tt.e):
         if event.symbol == 'i_0':
