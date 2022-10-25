@@ -22,7 +22,7 @@ TEST_PATH = config['MODEL GENERATION']['TRACE_PATH']
 SHA_NAME = sys.argv[1]
 RESULTS_PATH = config['MODEL VERIFICATION']['UPPAAL_OUT_PATH']
 
-MIN_T = 3
+MIN_T = config['MODEL VERIFICATION']['MIN_T']
 
 if len(sys.argv) > 3:
     N_DAYS = int(sys.argv[3])
