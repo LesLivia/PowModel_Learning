@@ -13,6 +13,7 @@ config.sections()
 
 CS_VERSION = config['SUL CONFIGURATION']['CS_VERSION']
 N = int(config['MODEL VERIFICATION']['N'])
+EPS = config['DEFAULT']['eps']
 
 SPEED_RANGE = int(config['ENERGY CS']['SPEED_RANGE'])
 MIN_SPEED = int(config['ENERGY CS']['MIN_SPEED'])
@@ -194,7 +195,10 @@ def generate_upp_model(learned_sha: SHA, trace_day: str, validation=False, tt=No
         time_bound = max(sum([int(float(tup[0])) for tup in tt]), 60)
     else:
         time_bound = TAU
+
     nta_tplt = nta_tplt.replace('**TIME_BOUND**', str(time_bound) + ';\n')
+
+    nta_tplt = nta_tplt.replace('**EPS**', EPS)
 
     with open(SAVE_PATH + SHA_NAME + '.xml', 'w') as new_model:
         new_model.write(nta_tplt)
