@@ -2,6 +2,7 @@ import configparser
 import math
 import os
 import random
+import sys
 from typing import List
 
 import matplotlib.pyplot as plt
@@ -17,9 +18,13 @@ config.read('./resources/config/config.ini')
 config.sections()
 
 TRACE_PATH = config['MODEL GENERATION']['TRACE_PATH']
+CASE_STUDY = config['SUL CONFIGURATION']['CASE_STUDY']
+CS_VERSION = config['SUL CONFIGURATION']['CS_VERSION']
+SHA_NAME = sys.argv[1].replace(CASE_STUDY + '_' + CS_VERSION, '')
 
-VALUES_PATH = 'resources/upp_results/histogram_values.txt'
+VALUES_PATH = 'resources/upp_results/histogram_values' + SHA_NAME + '.txt'
 BINS = 25
+N = int(config['MODEL VERIFICATION']['N'])
 
 
 class KDE_Distr:
@@ -62,7 +67,9 @@ def fit_distr(plot=False):
                 lines = values[index + 1:distr_indexes[i + 1]]
             except IndexError:
                 lines = values[index + 1:]
-            lines = [float(l) for l in lines]
+            lines = list(set([float(l) for l in lines]))
+            if len(lines) < 2:
+                lines = [lines[0]] * N
             distr.append(lines)
 
     for d in distr:

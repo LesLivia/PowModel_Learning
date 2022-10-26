@@ -2,7 +2,7 @@ import pandas as pd
 
 in_excel_path = './resources/simulated_data/{}.xlsx'
 
-file_name = 'part_iii'
+file_name = 'part_ii'
 
 columns = ['PART ib',
            'ID',
@@ -26,7 +26,7 @@ out_excel_path = './resources/simulated_data/{}.xlsx'
 out_csv_path = './resources/simulated_data/{}.csv'
 
 instr = input("Action: ")
-i = 6
+i = 20
 
 while instr != 'q':
     print('Generating TRACE {}...'.format(i + 1))

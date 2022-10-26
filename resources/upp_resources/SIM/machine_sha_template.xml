@@ -14,7 +14,7 @@ void set_vars(int _w, double a, double b, double c, int d) {
     } else {
         w = **SPEED**;
         rate = random_kde(a, b, c, d);
-        P = rate;
+        P = rate/eps*60;
     }
 }</declaration>
 **LOCATIONS**<init ref="**INIT_ID**"/>**TRANSITIONS**</template>

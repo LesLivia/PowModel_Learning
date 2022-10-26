@@ -27,6 +27,8 @@ const double MU_1[N_KER[1]] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 500.
 [...]
 **/
 
+const double eps = (1000*1.7);
+
 **MU_VECT**
 
 double normal_pdf(double mu, double sigma, double x) {

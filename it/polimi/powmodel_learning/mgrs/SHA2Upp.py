@@ -33,7 +33,7 @@ LOCATION_TPLT = """<location id="{}" x="{}" y="{}">\n\t<name x="{}" y="{}">{}</n
 
 LOCATION_TPLT_VAL = """<location id="{}" x="{}" y="{}">\n\t<name x="{}" y="{}">{}</name></location>\n"""
 
-QUERY_TPLT = """E[<=TAU;{}](max: m_1.E/(1000*1.7)*60)\nsimulate[<=TAU; {}]{m_1.w, m_1.P, m_1.E/(1000*1.7)*60}"""
+QUERY_TPLT = """E[<=TAU;{}](max: m_1.E)\nsimulate[<=TAU; {}]{m_1.w, m_1.P, m_1.E}"""
 
 QUERY_TPLT_VAL = """A<>(p_1.next_i==N_E)"""
 
