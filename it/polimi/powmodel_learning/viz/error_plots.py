@@ -1,5 +1,6 @@
 import os
 import sys
+from typing import Dict, List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,9 +16,20 @@ files = os.listdir(log_path)
 files = [x for x in files if not x.startswith('.')]
 files.sort(key=get_n_traces)
 
-BINS = 50
+BINS = 20
+MIN_X = 5
+MAX_X = 6
 plot_lsha = True
 plot_benchmark = False
+percentiles = [5, 50, 95]
+
+across_traces_perc: Dict[int, List[float]] = {get_n_traces(x): [] for x in files}
+across_traces_real: Dict[int, List[float]] = {get_n_traces(x): [] for x in files}
+across_traces_est: Dict[int, List[float]] = {get_n_traces(x): [] for x in files}
+
+means: List[float] = []
+perc_upp: List[float] = []
+perc_bot: List[float] = []
 
 for log_name in files:
     with open(log_path + log_name) as log:
@@ -29,18 +41,28 @@ for log_name in files:
         errors = [float(line.split(': ')[1].replace('%\n', '')) for line in lines
                   if line.__contains__("(L*_SHA) ENERGY ESTIMATION ERROR")]
         errors = [x for x in errors]
+
+        across_traces_perc[get_n_traces(log_name)] = errors
+
         in_minmax = [line.split(': ')[1] == 'True\n' for line in lines
                      if line.__contains__("(L*_SHA) IN EST. MIN/MAX")]
         in_ci = [line.split(': ')[1] == 'True\n' for line in lines
                  if line.__contains__("(L*_SHA) IN EST. CONFIDENCE INT.:")]
+
+        real_energy = [float(line.split(': ')[1]) for line in lines if line.__contains__("REAL ENERGY CONSUMPTION")]
+        lsha_energy = [float(line.split(': ')[1]) for line in lines
+                       if line.__contains__("(L*_SHA) EST. ENERGY CONSUMPTION")]
+
+        across_traces_real[get_n_traces(log_name)] = real_energy
+        across_traces_est[get_n_traces(log_name)] = lsha_energy
 
         avg_error = sum(errors) / len(errors)
         avg_inminmax = sum(in_minmax) / len(in_minmax) * 100
         avg_inci = sum(in_ci) / len(in_ci) * 100
 
         print("(L*_SHA) Average error: {:.3f}% on {} eligible traces.".format(avg_error, len(errors)))
-        print("(L*_SHA) {:.3f}% in min/max interval.".format(avg_inminmax))
-        print("(L*_SHA) {:.3f}% in confidence interval.".format(avg_inci))
+        # print("(L*_SHA) {:.3f}% in min/max interval.".format(avg_inminmax))
+        # print("(L*_SHA) {:.3f}% in confidence interval.".format(avg_inci))
 
         b_errors = [float(line.split(': ')[1].replace('%\n', '')) for line in lines
                     if line.__contains__("(Benchmark) ENERGY ESTIMATION ERROR")]
@@ -52,23 +74,28 @@ for log_name in files:
         b_avg_inminmax = sum(b_in_minmax) / len(b_in_minmax) * 100
 
         print("(Benchmark) Average error: {:.3f}% on {} eligible traces.".format(b_avg_error, len(b_errors)))
-        print("(Benchmark) {:.3f}% in min/max interval.".format(b_avg_inminmax))
+        # print("(Benchmark) {:.3f}% in min/max interval.".format(b_avg_inminmax))
 
         plt.figure(figsize=(20, 5))
         plt.hist(errors, bins=BINS, density=True)
 
         min_ylim, max_ylim = plt.ylim()
-        min_xlim, max_xlim = min(errors), max(errors)
+        min_xlim, max_xlim = MIN_X, MAX_X
         plt.xlim(min_xlim, max_xlim)
         plt.title("L*_SHA ERRORS")
         plt.xticks(np.arange(min_xlim, max_xlim, BINS / 100))
 
-        percentiles = [25, 50, 90]
         for p in percentiles:
             perc = np.percentile(errors, q=p)
+            print("{}-%: {:.3f}%".format(p, perc))
+            if p == 50:
+                means.append(perc)
+            if p == percentiles[0]:
+                perc_bot.append(perc)
+            if p == percentiles[-1]:
+                perc_upp.append(perc)
             plt.axvline(perc, color='k', linestyle='dashed')
-            print("{}-%: {:.1f}%".format(p, perc))
-            plt.text(perc + 1.0, max_ylim * 0.9, "{}-%: {:.1f}%".format(p, perc))
+            plt.text(perc + 1.0, max_ylim * 0.9, "{}-%".format(p))
 
         plt.show()
 
@@ -116,3 +143,19 @@ for log_name in files:
         # greater_files = [traces[i] for i in greater_avg]
         # greater_files.sort()
         # [print(f) for f in set(greater_files)]
+
+plt.figure(figsize=(10, 5))
+
+plt.boxplot(list(across_traces_perc.values()),
+            positions=list(across_traces_perc.keys()))
+plt.plot(list(across_traces_perc.keys()), means, '-.', color='black', linewidth=.5)
+plt.plot(list(across_traces_perc.keys()), perc_upp, '-.', color='green', linewidth=.5)
+plt.show()
+
+# plt.figure(figsize=(10, 5))
+# plt.boxplot(list(across_traces_real.values()),
+#             positions=list(across_traces_perc.keys()))
+# plt.boxplot(list(across_traces_est.values()),
+#             positions=list(across_traces_perc.keys()))
+# plt.show()
+

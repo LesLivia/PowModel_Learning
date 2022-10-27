@@ -343,7 +343,8 @@ else:
                 if i == 0:
                     energy.points.append(SignalPoint(pt.timestamp, pt.value/1000))
                 else:
-                    energy.points.append(SignalPoint(pt.timestamp, energy.points[-1].value + pt.value/1000))
+                    delta_time = pt.timestamp.to_secs()-power.points[i-1].timestamp.to_secs()
+                    energy.points.append(SignalPoint(pt.timestamp, energy.points[-1].value + pt.value/1000*delta_time))
 
             return [power, speed, pressure, energy]
 
