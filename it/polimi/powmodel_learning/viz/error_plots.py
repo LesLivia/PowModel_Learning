@@ -16,9 +16,9 @@ files = os.listdir(log_path)
 files = [x for x in files if not x.startswith('.')]
 files.sort(key=get_n_traces)
 
-BINS = 20
-MIN_X = 5
-MAX_X = 6
+BINS = 40
+MIN_X = 2
+MAX_X = 3
 plot_lsha = True
 plot_benchmark = False
 percentiles = [5, 50, 95]

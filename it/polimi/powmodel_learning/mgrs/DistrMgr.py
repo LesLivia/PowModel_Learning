@@ -67,7 +67,7 @@ def fit_distr(plot=False):
                 lines = values[index + 1:distr_indexes[i + 1]]
             except IndexError:
                 lines = values[index + 1:]
-            lines = list(set([float(l) for l in lines]))
+            lines = list([float(l) for l in lines])
             if len(lines) < 2:
                 lines = [lines[0]] * N
             distr.append(lines)
