@@ -49,7 +49,7 @@ def analyze_results(sigs: List[SampledSignal], b_distr: KDE_Distr, plot=True, fi
     if CS_VERSION == 'REAL':
         b_energy_samples = [s * len(sigs[2].points) / 60 for s in b_samples]
     else:
-        b_energy_samples = [s * len(sigs[2].points) / 1000 * 1.2 for s in b_samples]
+        b_energy_samples = [s * len(sigs[2].points) / 1000 for s in b_samples]
 
     b_avg_energy = sum(b_energy_samples) / len(b_energy_samples)
     b_error = abs(sigs[2].points[-1].value - b_avg_energy) / sigs[2].points[-1].value * 100
