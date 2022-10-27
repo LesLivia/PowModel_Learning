@@ -17,8 +17,8 @@ files = [x for x in files if not x.startswith('.')]
 files.sort(key=get_n_traces)
 
 BINS = 40
-MIN_X = 2
-MAX_X = 3
+MIN_X = 0
+MAX_X = 50
 plot_lsha = True
 plot_benchmark = False
 percentiles = [5, 50, 95]
