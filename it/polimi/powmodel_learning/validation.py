@@ -56,7 +56,7 @@ for trace in eligible_traces:
 
     # Analyze Results
     try:
-        res.analyze_results(sigs, benchmark_distr, plot=True, file_name=trace[1])
+        res.analyze_results(sigs, benchmark_distr, plot=False, file_name=trace[1])
     except IndexError:
         traceback.print_exc()
         LOGGER.error("ERROR WITH TRACE {}".format(trace))
