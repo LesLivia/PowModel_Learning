@@ -196,7 +196,7 @@ def generate_upp_model(learned_sha: SHA, trace_day: str, validation=False, tt=No
     else:
         time_bound = TAU
 
-    nta_tplt = nta_tplt.replace('**TIME_BOUND**', str(10) + ';\n')
+    nta_tplt = nta_tplt.replace('**TIME_BOUND**', str(time_bound) + ';\n')
 
     nta_tplt = nta_tplt.replace('**EPS**', EPS)
 
