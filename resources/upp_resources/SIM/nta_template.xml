@@ -96,7 +96,7 @@ void get_next() {
     next_i++;
     if(next_i&gt;=N_E) return;
     next_e = TRACE[next_i];
-    T = TIMES[next_i];
+    T = TIMES[next_i]-1;
 }</declaration>
 		<location id="id0" x="212" y="85">
 			<name x="153" y="34">working</name>
