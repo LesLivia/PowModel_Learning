@@ -97,7 +97,7 @@ for log_name in files:
             plt.axvline(perc, color='k', linestyle='dashed')
             plt.text(perc + 1.0, max_ylim * 0.9, "{}-%".format(p))
 
-        plt.show()
+        # plt.show()
 
         if plot_benchmark:
             plt.figure(figsize=(20, 5))
