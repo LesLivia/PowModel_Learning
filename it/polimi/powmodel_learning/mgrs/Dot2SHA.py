@@ -29,7 +29,7 @@ def parse_sha(path: str):
             edges.add(Edge.parse_edge(line, locs))
         LOGGER.debug('Found {} edges.'.format(len(edges)))
 
-    new_sha = SHA(SHA_NAME, locs, edges, fit_distr())
+    new_sha = SHA(SHA_NAME, locs, edges, fit_distr(plot=False))
 
     LOGGER.info("SHA correctly generated.")
 

@@ -7,6 +7,7 @@ from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.stats as stats
 from scipy.stats import gaussian_kde
 
 from it.polimi.powmodel_learning.model.sigfeatures import SampledSignal
@@ -20,6 +21,7 @@ config.sections()
 TRACE_PATH = config['MODEL GENERATION']['TRACE_PATH']
 CASE_STUDY = config['SUL CONFIGURATION']['CASE_STUDY']
 CS_VERSION = config['SUL CONFIGURATION']['CS_VERSION']
+SAVE_PATH = config['MODEL GENERATION']['REPORT_SAVE_PATH']
 SHA_NAME = sys.argv[1].replace(CASE_STUDY + '_' + CS_VERSION, '')
 
 VALUES_PATH = 'resources/upp_results/histogram_values' + SHA_NAME + '.txt'
@@ -98,12 +100,30 @@ def fit_distr(plot=False):
         fit_distr.append(new_kde)
 
         if plot:
-            plt.figure()
-            plt.plot(rng, hist)
-            plt.plot(rng, line)
-            plt.plot(rng, y)
-            plt.plot(rng, [sum(y[:i]) for i, x in enumerate(rng)])
-            plt.show()
+            plt.figure(figsize=(7.5, 7.5))
+            d.sort()
+            plt.hist(d, bins=5, histtype=u'step', color='blue', linewidth=.5)
+            total_x = np.linspace(min(new_kde.mu_vec) - 3 * new_kde.h, max(new_kde.mu_vec) + 3 * new_kde.h, 1000)
+            pdf = [0.0] * len(total_x)
+            for ker in new_kde.mu_vec:
+                pdf_i = stats.norm.pdf(total_x, ker, new_kde.h)
+                pdf = [pdf[i] + pt for i, pt in enumerate(pdf_i)]
+                # x = np.linspace(ker - 3 * new_kde.h, ker + 3 * new_kde.h, 100)
+                # plt.plot(x, stats.norm.pdf(x, ker, new_kde.h), '--', color='red', linewidth=.5)
+            plt.vlines(new_kde.mu_vec, [0.0] * len(new_kde.mu_vec),
+                       [new_kde.h] * len(new_kde.mu_vec), color='blue', label='Field Data', linewidth=1.0)
+            pdf = [pt * new_kde.h / (len(d) * 0.03) for pt in pdf]
+            plt.plot(total_x, pdf, '-', color='red', linewidth=1.5, label='KDE')
+
+            y_min, y_max = plt.ylim()
+            y_ticks = np.arange(0, y_max, (y_max - y_min) / 10)
+            y_labels = np.arange(0, 0.7, 0.7 / len(y_ticks))
+            plt.yticks(y_ticks, labels=['{:.2f}'.format(x) for x in y_labels])
+            plt.xlabel('P [W]', fontsize=14)
+            plt.title('D(q_3)', fontsize=16)
+
+            plt.legend()
+            plt.savefig(fname=SAVE_PATH + '/kde_{}.pdf'.format(distr.index(d)), dpi=1000)
 
     return fit_distr
 
