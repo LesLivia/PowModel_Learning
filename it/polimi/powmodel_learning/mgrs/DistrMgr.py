@@ -56,6 +56,14 @@ class KDE_Distr:
         return samples
 
 
+def ker(x: float, h: float, x_i: float):
+    return (1 / math.sqrt(2 * math.pi)) * math.exp(-0.5 * ((x - x_i) / h) ** 2)
+
+
+def kde_pdf(x: float, h: float, n: int, pts: List[float]):
+    return 1 / (n * h) * sum([ker(x, h, x_i) for x_i in pts])
+
+
 def fit_distr(plot=False):
     distr: List[List[float]] = []
     fit_distr: List[KDE_Distr] = []
@@ -84,17 +92,17 @@ def fit_distr(plot=False):
         hist = [val / sum(hist) for val in hist]
 
         model = np.polyfit(rng, hist, 3)
-        line = [sum([coeff * (x ** (len(model) - 1 - i)) for i, coeff in enumerate(model)]) for x in rng]
 
         try:
-            kde = gaussian_kde(d, bw_method='silverman')
-            x = np.linspace(min(rng), max(rng), num=len(rng))
-            y = kde(x)
+            kde = gaussian_kde(list(set(d)), bw_method='silverman')
             if max(kde.pdf(d)) > 1000.0:
                 raise np.linalg.LinAlgError
-            new_kde = KDE_Distr(kde.n, kde.factor, d, min(d), max(d), max(kde.pdf(d)))
-        except np.linalg.LinAlgError:
-            y = [0] * len(rng)
+            new_kde = KDE_Distr(kde.n, kde.factor, list(set(d)), min(d) - 3 * kde.factor,
+                                max(d) + 3 * kde.factor, max(kde.pdf(d)))
+            x = np.linspace(min(new_kde.mu_vec) - 3 * new_kde.h, max(new_kde.mu_vec) + 3 * new_kde.h, 100)
+            pdf = [kde_pdf(pt, new_kde.h, len(new_kde.mu_vec), new_kde.mu_vec) for pt in x]
+            new_kde.max_pdf = max(pdf)
+        except (np.linalg.LinAlgError, ValueError):
             new_kde = KDE_Distr(len(d), 1.0, d, min(d), max(d), 1.0)
 
         fit_distr.append(new_kde)
@@ -102,28 +110,26 @@ def fit_distr(plot=False):
         if plot:
             plt.figure(figsize=(7.5, 7.5))
             d.sort()
-            plt.hist(d, bins=5, histtype=u'step', color='blue', linewidth=.5)
-            total_x = np.linspace(min(new_kde.mu_vec) - 3 * new_kde.h, max(new_kde.mu_vec) + 3 * new_kde.h, 1000)
-            pdf = [0.0] * len(total_x)
-            for ker in new_kde.mu_vec:
-                pdf_i = stats.norm.pdf(total_x, ker, new_kde.h)
-                pdf = [pdf[i] + pt for i, pt in enumerate(pdf_i)]
-                # x = np.linspace(ker - 3 * new_kde.h, ker + 3 * new_kde.h, 100)
-                # plt.plot(x, stats.norm.pdf(x, ker, new_kde.h), '--', color='red', linewidth=.5)
-            plt.vlines(new_kde.mu_vec, [0.0] * len(new_kde.mu_vec),
-                       [new_kde.h] * len(new_kde.mu_vec), color='blue', label='Field Data', linewidth=1.0)
-            pdf = [pt * new_kde.h / (len(d) * 0.03) for pt in pdf]
-            plt.plot(total_x, pdf, '-', color='red', linewidth=1.5, label='KDE')
+            # plt.hist(set(d), bins=5, histtype=u'step', color='blue', linewidth=.5, density=True)
+            for j, x_i in enumerate(set(d)):
+                pdf_i = [ker(pt, new_kde.h, x_i) / (len(set(d)) * new_kde.h) for pt in x]
+                if j == 0:
+                    plt.plot(x, pdf_i, '--', color='red', linewidth=1.0, label='Kernel')
+                else:
+                    plt.plot(x, pdf_i, '--', color='red', linewidth=1.0)
+            plt.vlines(new_kde.mu_vec, [-0.025] * len(new_kde.mu_vec),
+                       [0.0] * len(new_kde.mu_vec), color='black', label='Field Data', linewidth=1.0)
+            plt.plot(x, pdf, '-', color='blue', linewidth=2.0, label='KDE')
 
             y_min, y_max = plt.ylim()
-            y_ticks = np.arange(0, y_max, (y_max - y_min) / 10)
-            y_labels = np.arange(0, 0.7, 0.7 / len(y_ticks))
-            plt.yticks(y_ticks, labels=['{:.2f}'.format(x) for x in y_labels])
-            plt.xlabel('P [W]', fontsize=14)
-            plt.title('D(q_3)', fontsize=16)
+            plt.ylim(-0.025, y_max)
 
+            plt.title('D(q_3)', fontsize=14)
+            plt.xlabel('P[W]', fontsize=14)
+            plt.ylabel('Density Function', fontsize=14)
             plt.legend()
-            plt.savefig(fname=SAVE_PATH + '/kde_{}.pdf'.format(distr.index(d)), dpi=1000)
+            plt.show()
+            # plt.savefig(fname=SAVE_PATH + '/kde_{}.pdf'.format(distr.index(d)), dpi=1000)
 
     return fit_distr
 

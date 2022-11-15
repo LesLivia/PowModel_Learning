@@ -5,7 +5,7 @@ pd.options.mode.chained_assignment = None
 
 in_excel_path = './resources/simulated_data/{}.xlsx'
 
-file_name = 'part_ii'
+file_name = 'part_vi'
 
 columns = ['PART ib',
            'ID',
@@ -28,7 +28,7 @@ to_csv_cols = ['Simulated OP', 'Simulated time stamp', 'Simulated speed', 'Simul
 out_excel_path = './resources/simulated_data/{}.xlsx'
 out_csv_path = './resources/simulated_data/{}.csv'
 
-T = 10
+T = 30
 
 for i in range(T):
     print('Generating TRACE {}...'.format(i + 1))
@@ -40,5 +40,5 @@ for i in range(T):
                                  for x in list(df[['P spindle (W) = cutting + additional load']].values)]
     df['Simulated speed'] = df['Theo speed'] + df['Deviation for speed']
     df['Simulated power'] = df['P spindle (W) = cutting + additional load'] + df['Deviation for power']
-    df[to_csv_cols].to_csv(out_csv_path.format('_' + file_name + '_' + str(i + 1)))
+    df[to_csv_cols].to_csv(out_csv_path.format(file_name + '_' + str(i + 21)))
     print(df[['Simulated speed']].values[100])

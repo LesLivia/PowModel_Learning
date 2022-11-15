@@ -32,7 +32,7 @@ const double eps = (1000* **EPS**) ;
 **MU_VECT**
 
 double normal_pdf(double mu, double sigma, double x) {
-    return (1/(sigma*sqrt(2*PI)))*exp(-0.5*pow((x-mu)/sigma, 2));
+    return (1/(sqrt(2*PI)))*exp(-0.5*pow((x-mu)/sigma, 2));
 }
 
 double pdf(int d, double x) {
@@ -48,7 +48,7 @@ double pdf(int d, double x) {
 		**KDE_SWITCH**
     }
 
-    return res;
+    return 1/(N_KER[d]*SIGMA[d]) * res;
 }
 
 double random_kde(double a, double b, double c, int d) {
