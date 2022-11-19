@@ -15,7 +15,7 @@ config.read('./resources/config/config.ini')
 config.sections()
 
 TRACE_PATH = config['MODEL GENERATION']['TRACE_PATH']
-CI_PATH = '/Users/lestingi/PycharmProjects/PowModel_Learning/resources/upp_results/ENERGY_SIM_multi_part_12op_{}_{}t_CI.csv'
+CI_PATH = '/Users/lestingi/PycharmProjects/PowModel_Learning/resources/upp_results/ENERGY_SIM_multi_part_mix_{}_{}t_CI.csv'
 
 files = os.listdir(TRACE_PATH.replace('/{}.csv', ''))
 files = [file for file in files if file.startswith('part')]
@@ -57,7 +57,7 @@ original_ci = [real_mean - c * std_dev / den, real_mean + c * std_dev / den]
 
 print(original_ci)
 scenario = 'b'
-version = 1  # or 3
+version = 3  # or 1
 parts: List[str] = ['vi']
 
 if parts[0] == 'i':
@@ -69,8 +69,8 @@ if parts[0] == 'i':
         mean = [660.059, 661.533, 661.957]
         eps = [1.75, 1.98, 1.27]
     elif scenario == 'b' and version == 3:
-        mean = []
-        eps = []
+        mean = [660.3, 661.39, 661.037]
+        eps = [1.75, 1.34, 1.07]
 elif parts[0] == 'ii':
     # Part ii
     if scenario == 'a':
@@ -96,8 +96,8 @@ elif parts[0] == 'iv':
         mean = [1332.42, 1328.13, 1330.25]
         eps = [1.89, 1.19, 1.719]
     elif scenario == 'b' and version == 3:
-        mean = []
-        eps = []
+        mean = [1332.2, 1328.15, 1328.16]
+        eps = [1.42, 1.22, 1.54]
 elif parts[0] == 'v':
     # Part v
     if scenario == 'a':
@@ -115,8 +115,8 @@ elif parts[0] == 'vi':
         mean = [1152.57, 1149.39, 1149.51]
         eps = [1.53, 1.89, 1.19]
     elif scenario == 'b' and version == 3:
-        mean = []
-        eps = []
+        mean = [1150.08, 1148.31, 1148.08]
+        eps = [1.0, 1.43, 1.17]
 
 est_cis = [(mean - eps[i], mean + eps[i]) for i, mean in enumerate(mean)]
 
