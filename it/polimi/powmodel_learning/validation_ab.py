@@ -15,12 +15,27 @@ config.read('./resources/config/config.ini')
 config.sections()
 
 TRACE_PATH = config['MODEL GENERATION']['TRACE_PATH']
-CI_PATH = '/Users/lestingi/PycharmProjects/PowModel_Learning/resources/upp_results/ENERGY_SIM_part_{}_12op_{}t_CI.csv'
+CI_PATH = '/Users/lestingi/PycharmProjects/PowModel_Learning/resources/upp_results/ENERGY_SIM_multi_part_6op_{}_{}t_CI.csv'
 
 files = os.listdir(TRACE_PATH.replace('/{}.csv', ''))
 files = [file for file in files if file.startswith('part')]
 
+op_to_speed = {'26': '12', '14': '8', '16': '16', '4': '12', '2': '16', '18': '16', '5': '12', '25': '12', '24': '16',
+               '10': '12', '12': '12', '9': '8', '20': '8', '11': '12', '19': '8', '6': '12', '27': '12', '21': '8',
+               '13': '8', '15': '8', '17': '16'}
+
+
+def op_to_str(op):
+    if op == 'TOOL CHANGE':
+        return 'STOP'
+    elif op in ['LOAD', 'UNLOAD']:
+        return op
+    else:
+        return op_to_speed[op]
+
+
 ops_duration = get_op_duration(TRACE_PATH.format(files[0].replace('.csv', '')))
+print(','.join([op_to_str(op[0]) for op in ops_duration]))
 print(','.join([str(len(op[1])) + '.0' for op in ops_duration]))
 print(sum([len(op[1]) for op in ops_duration]))
 
@@ -41,32 +56,67 @@ den = math.sqrt(len(real_energy))
 original_ci = [real_mean - c * std_dev / den, real_mean + c * std_dev / den]
 
 print(original_ci)
-parts: List[str] = ['vi']
+scenario = 'b'
+version = 1  # or 3
+parts: List[str] = ['iii']
 
 if parts[0] == 'i':
     # Part i
-    mean = [661.289, 661.219, 661.157]
-    eps = [0.37, 0.264, 0.15]
+    if scenario == 'a':
+        mean = [661.289, 661.219, 661.157]
+        eps = [0.37, 0.264, 0.15]
+    elif scenario == 'b' and version == 1:
+        mean = [660.059, 661.533, 661.957]
+        eps = [1.75, 1.98, 1.27]
+    elif scenario == 'b' and version == 3:
+        mean = []
+        eps = []
 elif parts[0] == 'ii':
     # Part ii
-    mean = [252.373, 252.379, 252.375]
-    eps = [0.079, 0.07, 0.06]
+    if scenario == 'a':
+        mean = [252.373, 252.379, 252.375]
+        eps = [0.079, 0.07, 0.06]
+    else:
+        mean = [251.37, 252.267, 252.594]
+        eps = [1.45, 1.2, 1.27]
 elif parts[0] == 'iii':
     # Part iii
-    mean = [678.535, 678.545, 678.56]
-    eps = [0.062, 0.0565, 0.043]
+    if scenario == 'a':
+        mean = [678.535, 678.545, 678.56]
+        eps = [0.062, 0.0565, 0.043]
+    else:
+        mean = [675.279, 676.639, 679.577]
+        eps = [1.7, 1.613, 1.56]
 elif parts[0] == 'iv':
     # Part iv
-    mean = [1330.1, 1330.03, 1329.72]
-    eps = [1.43, 1.31, 0.88]
+    if scenario == 'a':
+        mean = [1330.1, 1330.03, 1329.72]
+        eps = [1.43, 1.31, 0.88]
+    elif scenario == 'b' and version == 1:
+        mean = []
+        eps = []
+    elif scenario == 'b' and version == 3:
+        mean = []
+        eps = []
 elif parts[0] == 'v':
     # Part v
-    mean = [524.245, 523.431, 523.72]
-    eps = [0.59, 0.44, 0.27]
+    if scenario == 'a':
+        mean = [524.245, 523.431, 523.72]
+        eps = [0.59, 0.44, 0.27]
+    else:
+        mean = []
+        eps = []
 elif parts[0] == 'vi':
     # Part vi
-    mean = [1149.18, 1149.18, 1149.13]
-    eps = [0.05, 0.08, 0.12]
+    if scenario == 'a':
+        mean = [1149.18, 1149.18, 1149.13]
+        eps = [0.05, 0.08, 0.12]
+    elif scenario == 'b' and version == 1:
+        mean = []
+        eps = []
+    elif scenario == 'b' and version == 3:
+        mean = []
+        eps = []
 
 est_cis = [(mean - eps[i], mean + eps[i]) for i, mean in enumerate(mean)]
 
