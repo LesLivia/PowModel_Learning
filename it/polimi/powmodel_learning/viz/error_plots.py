@@ -4,6 +4,7 @@ from typing import Dict, List
 
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.stats as st
 
 
 def get_n_traces(x: str):
@@ -52,6 +53,13 @@ for log_name in files:
         real_energy = [float(line.split(': ')[1]) for line in lines if line.__contains__("REAL ENERGY CONSUMPTION")]
         lsha_energy = [float(line.split(': ')[1]) for line in lines
                        if line.__contains__("(L*_SHA) EST. ENERGY CONSUMPTION")]
+
+        real_ci = st.t.interval(alpha=0.95, df=len(real_energy) - 1,
+                                loc=np.mean(real_energy),
+                                scale=st.sem(real_energy))
+        print(real_ci)
+
+        print('AVG. REAL ENERGY: {:.4f}'.format(sum(real_energy) / len(real_energy)))
 
         across_traces_real[get_n_traces(log_name)] = real_energy
         across_traces_est[get_n_traces(log_name)] = lsha_energy
@@ -158,4 +166,3 @@ plt.show()
 # plt.boxplot(list(across_traces_est.values()),
 #              positions=list(across_traces_perc.keys()))
 # plt.show()
-

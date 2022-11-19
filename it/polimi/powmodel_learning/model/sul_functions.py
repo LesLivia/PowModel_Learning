@@ -1,10 +1,11 @@
 import configparser
 import csv
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Set
 
 from it.polimi.powmodel_learning.model.lshafeatures import Event, FlowCondition
 from it.polimi.powmodel_learning.model.sigfeatures import SampledSignal, Timestamp, SignalPoint
 from it.polimi.powmodel_learning.utils.logger import Logger
+from polimi.powmodel_learning.model.sigfeatures import Timestamp
 
 config = configparser.ConfigParser()
 config.sections()
@@ -341,10 +342,10 @@ else:
 
             for i, pt in enumerate(power.points):
                 if i == 0:
-                    energy.points.append(SignalPoint(pt.timestamp, pt.value/1000))
+                    energy.points.append(SignalPoint(pt.timestamp, pt.value / 1000))
                 else:
-                    delta_time = pt.timestamp.to_secs()-power.points[i-1].timestamp.to_secs()
-                    energy.points.append(SignalPoint(pt.timestamp, energy.points[-1].value + pt.value/1000*delta_time))
+                    delta_time = pt.timestamp.to_secs() - power.points[i - 1].timestamp.to_secs()
+                    energy.points.append(SignalPoint(pt.timestamp, energy.points[-1].value + pt.value))
 
             return [power, speed, pressure, energy]
 
@@ -353,3 +354,22 @@ else:
         sum_power = sum([pt.value for pt in segment])
         avg_power = sum_power / len(segment)
         return avg_power
+
+
+    def get_op_duration(path: str):
+        ops: List[Tuple[str, Set[Timestamp]]] = []
+        with open(path) as csv_file:
+            reader = csv.reader(csv_file, delimiter=',')
+
+            for i, row in enumerate(reader):
+                if i == 0:
+                    continue
+
+                op = str(row[1])
+                ts: Timestamp = parse_ts(row[2])
+
+                if len(ops) > 0 and (op == ops[-1][0] or (op == 'TOOL CHANGE' and ops[-1][0] in ['LOAD', 'UNLOAD'])):
+                    ops[-1][1].add(ts)
+                else:
+                    ops.append((op, {ts}))
+        return ops
