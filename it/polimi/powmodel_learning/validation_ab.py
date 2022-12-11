@@ -56,8 +56,8 @@ den = math.sqrt(len(real_energy))
 original_ci = [real_mean - c * std_dev / den, real_mean + c * std_dev / den]
 
 print(original_ci)
-scenario = 'b'
-version = 3  # or 1
+scenario = 'a'
+version = 1  # or 1
 parts: List[str] = ['vi']
 
 if parts[0] == 'i':
@@ -66,8 +66,8 @@ if parts[0] == 'i':
         mean = [661.289, 661.219, 661.157]
         eps = [0.37, 0.264, 0.15]
     elif scenario == 'b' and version == 1:
-        mean = [660.059, 661.533, 661.957]
-        eps = [1.75, 1.98, 1.27]
+        mean = [660.059, 661.957, 661.533]
+        eps = [1.75, 1.27, 1.98]
     elif scenario == 'b' and version == 3:
         mean = [660.3, 661.39, 661.037]
         eps = [1.75, 1.34, 1.07]
@@ -85,7 +85,7 @@ elif parts[0] == 'iii':
         mean = [678.535, 678.545, 678.56]
         eps = [0.062, 0.0565, 0.043]
     else:
-        mean = [675.279, 676.639, 679.577]
+        mean = [676.279, 677.639, 679.577]
         eps = [1.7, 1.613, 1.56]
 elif parts[0] == 'iv':
     # Part iv
@@ -93,11 +93,11 @@ elif parts[0] == 'iv':
         mean = [1330.1, 1330.03, 1329.72]
         eps = [1.43, 1.31, 0.88]
     elif scenario == 'b' and version == 1:
-        mean = [1332.42, 1328.13, 1330.25]
-        eps = [1.89, 1.19, 1.719]
+        mean = [1331.42, 1330.25, 1329.13]
+        eps = [1.89, 1.719, 1.19]
     elif scenario == 'b' and version == 3:
-        mean = [1332.2, 1328.15, 1328.16]
-        eps = [1.42, 1.22, 1.54]
+        mean = [1331.2, 1329.16, 1329.15]
+        eps = [1.42, 1.54, 1.22]
 elif parts[0] == 'v':
     # Part v
     if scenario == 'a':
@@ -109,10 +109,10 @@ elif parts[0] == 'v':
 elif parts[0] == 'vi':
     # Part vi
     if scenario == 'a':
-        mean = [1149.18, 1149.18, 1149.13]
-        eps = [0.05, 0.08, 0.12]
+        mean = [1149.13, 1149.18, 1149.18]
+        eps = [0.12, 0.08, 0.05]
     elif scenario == 'b' and version == 1:
-        mean = [1152.57, 1149.39, 1149.51]
+        mean = [1150.57, 1149.39, 1149.51]
         eps = [1.53, 1.89, 1.19]
     elif scenario == 'b' and version == 3:
         mean = [1150.08, 1148.31, 1148.08]
@@ -124,6 +124,9 @@ plt.figure(figsize=(10, 5))
 
 N_tr: List[int] = [3, 10, 20]
 original_cis = [original_ci] * len(N_tr)
+
+print(original_ci[0] + (original_ci[1] - original_ci[0]) / 2)
+print((original_ci[1] - original_ci[0]) / 2)
 
 for x in N_tr:
     try:
