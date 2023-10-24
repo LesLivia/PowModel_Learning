@@ -47,7 +47,7 @@ if CS_VERSION == 'REAL':
     events.append(Event('', 'load', 'l'))
     events.append(Event('', 'unload', 'u'))
 
-    DRIVER_SIG = ['w', 'pr']
+    DRIVER_SIG = ['w', 'pr', 'wd']
     DEFAULT_M = 0
     DEFAULT_DISTR = 0
 
@@ -121,4 +121,4 @@ def get_timed_trace(input_file_name: str):
 
         tt_tup.append((str(diff_t), e_sym))
 
-    return tt_tup, [energy_cs.signals[-1][0], energy_cs.signals[-1][1], energy_cs.signals[-1][3]]
+    return tt_tup, [energy_cs.signals[-1][0], energy_cs.signals[-1][1], energy_cs.signals[-1][2]]

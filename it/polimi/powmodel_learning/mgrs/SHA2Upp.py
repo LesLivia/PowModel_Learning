@@ -181,7 +181,7 @@ def generate_upp_model(learned_sha: SHA, trace_day: str, validation=False, tt=No
     for i, tup in enumerate(tt):
         tt_str += tup[1]
         if not validation:
-            times_str += tup[0]
+            times_str += str(float(tup[0])*60)
         if i < len(tt) - 1:
             tt_str += ','
             if not validation:

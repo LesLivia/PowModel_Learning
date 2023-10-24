@@ -33,7 +33,7 @@ else:
 def parse_traces():
     folder_path = TEST_PATH.split('{')[0]
     csv_files = os.listdir(folder_path)
-    csv_files = [f for f in csv_files if (f.__contains__('W') or f.__contains__('part')) and not f.startswith('_')]
+    csv_files = [f for f in csv_files]
     csv_files.sort()
     if N_DAYS is not None:
         csv_files = csv_files[:N_DAYS]
@@ -67,7 +67,7 @@ def get_cut_signals(trace):
 def get_subtraces(tt, sigs):
     subtraces = []
     # find all subtraces of tt, up to minimum length MIN_T
-    for l in range(MIN_T, len(tt)):
+    for l in range(MIN_T, len(tt)+1):
         for i in range(len(tt)):
             subtrace = tt[i:i + l]
             if len(subtrace) == l:
@@ -85,14 +85,30 @@ def verify_trace(learned_sha: SHA, traces):
     eligible_traces = []
     for trace in tqdm(traces):
         tt, sigs = get_timed_trace(trace[1])
+        check = 0
         for s_tt in tqdm(get_subtraces(tt, sigs)):
             generate_upp_model(learned_sha, trace[1], validation=True, tt=s_tt[0])
             run_exp(SHA_NAME)
             with open(RESULTS_PATH.format(SHA_NAME)) as res_f:
                 result = [l for l in res_f.readlines() if l.__contains__('Formula is')][0]
                 if not result.__contains__('NOT'):
-                    # s_tt[0][0] = ('0', s_tt[0][0][1])
                     eligible_traces.append((trace[0], trace[1], s_tt))
+                    check = 1
+        if check == 0:  # only if no subtraces of the main trace have been added to the list
+            to_fit = s_tt[0]  # trace that we want to add
+            x = []
+            removed_element = []  # list of the removed elements
+            for i in tqdm(range(to_fit.__len__())):
+                x.append(to_fit[i])  # add one element for iteration
+                generate_upp_model(learned_sha, trace[1], validation=True, tt=x)
+                run_exp(SHA_NAME)
+                with open(RESULTS_PATH.format(SHA_NAME)) as res_f:
+                    result = [l for l in res_f.readlines() if l.__contains__('Formula is')][0]
+                    if result.__contains__('NOT'):  # if the trace is not compatible, remove the last element added
+                        removed_element.append(x[x.__len__()-1])
+                        x.pop(x.__len__()-1)
+            if x.__len__() > 0:
+                eligible_traces.append((trace[0], trace[1], x))
 
     return eligible_traces
 
