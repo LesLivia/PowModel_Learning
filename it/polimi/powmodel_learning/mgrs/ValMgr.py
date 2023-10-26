@@ -24,6 +24,8 @@ RESULTS_PATH = config['MODEL VERIFICATION']['UPPAAL_OUT_PATH']
 
 MIN_T = int(config['MODEL VERIFICATION']['MIN_T'])
 
+DISCARD_INCOMP_EVTS = config['ENERGY CS']['DISCARD_INCOMP_EVTS'].lower() == 'true'
+
 if len(sys.argv) > 3:
     N_DAYS = int(sys.argv[3])
 else:
@@ -33,7 +35,7 @@ else:
 def parse_traces():
     folder_path = TEST_PATH.split('{')[0]
     csv_files = os.listdir(folder_path)
-    csv_files = [f for f in csv_files]
+    csv_files = [f for f in csv_files if f.startswith('W')]
     csv_files.sort()
     if N_DAYS is not None:
         csv_files = csv_files[:N_DAYS]
@@ -64,55 +66,44 @@ def get_cut_signals(trace):
     return new_sigs
 
 
-def get_subtraces(tt, sigs):
-    subtraces = []
-    # find all subtraces of tt, up to minimum length MIN_T
-    for l in range(MIN_T, len(tt)+1):
-        for i in range(len(tt)):
-            subtrace = tt[i:i + l]
-            if len(subtrace) == l:
-                first_ts = sigs[0].points[0].timestamp.to_secs()
-                start_ts = first_ts + sum([float(x[0]) for j, x in enumerate(tt) if j <= i]) * 60
-                end_ts = first_ts + sum([float(x[0]) for j, x in enumerate(tt) if j <= i + l]) * 60
-                subtraces.append((subtrace, start_ts, end_ts))
-            else:
-                break
-
-    return subtraces
+def get_prefixes(tt, sigs):
+    prefixes = []
+    for l in range(MIN_T, len(tt) + 1):  # find all subtraces of tt of minimum length MIN_T
+        prefix = tt[:l]
+        start_ts = sigs[0].points[0].timestamp.to_secs()
+        end_ts = start_ts + sum([float(x[0]) for x in prefix]) * 60
+        prefixes.append((prefix, start_ts, end_ts))
+    return prefixes
 
 
-def verify_trace(learned_sha: SHA, traces):
-    eligible_traces = []
+def verify_trace_compatibility(learned_sha: SHA, traces):
+    compatible_traces = []
     for trace in tqdm(traces):
         tt, sigs = get_timed_trace(trace[1])
-        check = 0
-        for s_tt in tqdm(get_subtraces(tt, sigs)):
-            generate_upp_model(learned_sha, trace[1], validation=True, tt=s_tt[0])
+        incomp_evts = []  # list of the removed elements
+        for s_tt in tqdm(get_prefixes(tt, sigs)):
+            if DISCARD_INCOMP_EVTS:
+                rev_s_tt = [evt for i, evt in enumerate(s_tt[0]) if i not in incomp_evts]
+            else:
+                rev_s_tt = s_tt[0]
+            generate_upp_model(learned_sha, trace[1], validation=True, tt=rev_s_tt)
             run_exp(SHA_NAME)
             with open(RESULTS_PATH.format(SHA_NAME)) as res_f:
-                result = [l for l in res_f.readlines() if l.__contains__('Formula is')][0]
-                if not result.__contains__('NOT'):
-                    eligible_traces.append((trace[0], trace[1], s_tt))
-                    check = 1
-        if check == 0:  # only if no subtraces of the main trace have been added to the list
-            to_fit = s_tt[0]  # trace that we want to add
-            x = []
-            removed_element = []  # list of the removed elements
-            for i in tqdm(range(to_fit.__len__())):
-                x.append(to_fit[i])  # add one element for iteration
-                generate_upp_model(learned_sha, trace[1], validation=True, tt=x)
-                run_exp(SHA_NAME)
-                with open(RESULTS_PATH.format(SHA_NAME)) as res_f:
-                    result = [l for l in res_f.readlines() if l.__contains__('Formula is')][0]
-                    if result.__contains__('NOT'):  # if the trace is not compatible, remove the last element added
-                        removed_element.append(x[x.__len__()-1])
-                        x.pop(x.__len__()-1)
-            if x.__len__() > 0:
-                eligible_traces.append((trace[0], trace[1], x))
+                result = [l for l in res_f.readlines() if 'Formula is' in l][0]
+                if 'NOT' not in result:  # if prefix s_tt is compatible with the SHA
+                    if (len(compatible_traces) > 0 and compatible_traces[-1][0] != trace[0]) or \
+                            len(compatible_traces) == 0:
+                        compatible_traces.append((trace[0], trace[1], (rev_s_tt, s_tt[1], s_tt[2]), incomp_evts))
+                    else:
+                        compatible_traces[-1] = (trace[0], trace[1], (rev_s_tt, s_tt[1], s_tt[2]), incomp_evts)
+                elif not DISCARD_INCOMP_EVTS:  # if it is not compatible and discarding is disabled, stop checking
+                    break
+                else:  # if it is not compatible and the discarding is enabled, start discarding
+                    incomp_evts.append(len(s_tt[0]) - 1)
 
-    return eligible_traces
+    return compatible_traces
 
 
-def get_eligible_traces(learned_sha: SHA):
-    eligible_traces = verify_trace(learned_sha, parse_traces())
-    return eligible_traces
+def get_compatible_traces(learned_sha: SHA):
+    compatible_traces = verify_trace_compatibility(learned_sha, parse_traces())
+    return compatible_traces

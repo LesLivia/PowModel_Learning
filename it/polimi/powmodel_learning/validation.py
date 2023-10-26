@@ -8,7 +8,7 @@ import it.polimi.powmodel_learning.mgrs.ResMgr as res
 import it.polimi.powmodel_learning.mgrs.SHA2Upp as sha2upp
 import it.polimi.powmodel_learning.mgrs.VerMgr as ver
 from it.polimi.powmodel_learning.mgrs.DistrMgr import get_benchmark_distr
-from it.polimi.powmodel_learning.mgrs.ValMgr import get_eligible_traces, get_cut_signals
+from it.polimi.powmodel_learning.mgrs.ValMgr import get_compatible_traces, get_cut_signals
 from utils.logger import Logger
 
 LOGGER = Logger('main')
@@ -41,7 +41,7 @@ for loc in learned_sha.locations:
                 print("duplicate from {} with {}".format(loc.name, edge.sync))
 
 # Find eligible traces
-eligible_traces: List[str] = get_eligible_traces(learned_sha)
+eligible_traces: List[str] = get_compatible_traces(learned_sha)
 
 LOGGER.info("Found {} eligible traces.".format(len(eligible_traces)))
 
