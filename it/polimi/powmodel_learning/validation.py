@@ -40,12 +40,12 @@ for loc in learned_sha.locations:
             if edge.sync == edge_2.sync and i != j:
                 print("duplicate from {} with {}".format(loc.name, edge.sync))
 
-# Find eligible traces
-eligible_traces: List[str] = get_compatible_traces(learned_sha)
+# Find compatible traces
+compatible_traces: List[str] = get_compatible_traces(learned_sha)
 
-LOGGER.info("Found {} eligible traces.".format(len(eligible_traces)))
+LOGGER.info("Found {} compatible traces.".format(len(compatible_traces)))
 
-for trace in eligible_traces:
+for trace in compatible_traces:
     sigs = get_cut_signals(trace)
 
     # Convert to Uppaal model
