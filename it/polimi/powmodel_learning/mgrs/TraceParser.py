@@ -3,8 +3,8 @@ from typing import List, Tuple
 
 from it.polimi.powmodel_learning.model.lshafeatures import FlowCondition, NormalDistribution, RealValuedVar
 from it.polimi.powmodel_learning.model.sigfeatures import Event, Timestamp
-from it.polimi.powmodel_learning.model.sulfeatures import SystemUnderLearning
 from it.polimi.powmodel_learning.model.sul_functions import parse_data, label_event, get_power_param, is_chg_pt
+from it.polimi.powmodel_learning.model.sulfeatures import SystemUnderLearning
 
 config = configparser.ConfigParser()
 config.sections()
@@ -121,4 +121,4 @@ def get_timed_trace(input_file_name: str):
 
         tt_tup.append((str(diff_t), e_sym))
 
-    return tt_tup, [energy_cs.signals[-1][0], energy_cs.signals[-1][1], energy_cs.signals[-1][2]]
+    return tt_tup, [energy_cs.signals[-1][0], energy_cs.signals[-1][1], energy_cs.signals[-1][3]]

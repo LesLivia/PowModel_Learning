@@ -226,6 +226,7 @@ if CS_VERSION == 'REAL':
             for pt in filtered_speed.points[:20]:
                 pt.value = 0.0
             filtered_speed.points[-2].value = 0.0
+
             return [power, filtered_speed, pressure, energy]
 
 

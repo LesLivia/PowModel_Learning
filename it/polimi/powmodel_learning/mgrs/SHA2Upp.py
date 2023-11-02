@@ -34,7 +34,10 @@ LOCATION_TPLT = """<location id="{}" x="{}" y="{}">\n\t<name x="{}" y="{}">{}</n
 
 LOCATION_TPLT_VAL = """<location id="{}" x="{}" y="{}">\n\t<name x="{}" y="{}">{}</name></location>\n"""
 
-QUERY_TPLT = """E[<=TAU;{}](max: m_1.E)\nsimulate[<=TAU; {}]{m_1.w, m_1.P, m_1.E}"""
+if CS_VERSION.lower() == 'real':
+    QUERY_TPLT = """E[<=TAU;{}](max: m_1.E/60)\nsimulate[<=TAU; {}]{m_1.w, m_1.P, m_1.E/60}"""
+else:
+    QUERY_TPLT = """E[<=TAU;{}](max: m_1.E)\nsimulate[<=TAU; {}]{m_1.w, m_1.P, m_1.E}"""
 
 QUERY_TPLT_VAL = """A<>(p_1.next_i==N_E)"""
 
@@ -181,7 +184,7 @@ def generate_upp_model(learned_sha: SHA, trace_day: str, validation=False, tt=No
     for i, tup in enumerate(tt):
         tt_str += tup[1]
         if not validation:
-            times_str += str(float(tup[0])*60)
+            times_str += str(float(tup[0]) * 60)
         if i < len(tt) - 1:
             tt_str += ','
             if not validation:
@@ -195,6 +198,9 @@ def generate_upp_model(learned_sha: SHA, trace_day: str, validation=False, tt=No
         time_bound = max(sum([int(float(tup[0])) for tup in tt]), 60)
     else:
         time_bound = TAU
+
+    if CS_VERSION.lower() == 'real':
+        time_bound *= 60
 
     nta_tplt = nta_tplt.replace('**TIME_BOUND**', str(time_bound) + ';\n')
 

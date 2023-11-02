@@ -71,7 +71,8 @@ def get_prefixes(tt, sigs):
     for l in range(MIN_T, len(tt) + 1):  # find all subtraces of tt of minimum length MIN_T
         prefix = tt[:l]
         start_ts = sigs[0].points[0].timestamp.to_secs()
-        end_ts = start_ts + sum([float(x[0]) for x in prefix]) * 60
+        post_prefix = tt[:l + 1]
+        end_ts = start_ts + sum([float(x[0]) for x in post_prefix]) * 60
         prefixes.append((prefix, start_ts, end_ts))
     return prefixes
 
@@ -91,11 +92,15 @@ def verify_trace_compatibility(learned_sha: SHA, traces):
             with open(RESULTS_PATH.format(SHA_NAME)) as res_f:
                 result = [l for l in res_f.readlines() if 'Formula is' in l][0]
                 if 'NOT' not in result:  # if prefix s_tt is compatible with the SHA
+                    if not DISCARD_INCOMP_EVTS:
+                        incomp_evts = list(range(len(rev_s_tt), len(tt)))
                     if (len(compatible_traces) > 0 and compatible_traces[-1][0] != trace[0]) or \
                             len(compatible_traces) == 0:
-                        compatible_traces.append((trace[0], trace[1], (rev_s_tt, s_tt[1], s_tt[2]), incomp_evts))
+                        compatible_traces.append((trace[0], trace[1], (rev_s_tt, s_tt[1], s_tt[2]),
+                                                  (incomp_evts, sum([float(x[0]) for x in tt]))))
                     else:
-                        compatible_traces[-1] = (trace[0], trace[1], (rev_s_tt, s_tt[1], s_tt[2]), incomp_evts)
+                        compatible_traces[-1] = (trace[0], trace[1], (rev_s_tt, s_tt[1], s_tt[2]),
+                                                 (incomp_evts, sum([float(x[0]) for x in tt])))
                 elif not DISCARD_INCOMP_EVTS:  # if it is not compatible and discarding is disabled, stop checking
                     break
                 else:  # if it is not compatible and the discarding is enabled, start discarding
