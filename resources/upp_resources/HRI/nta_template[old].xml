@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>/**
+*** CHANNELS
+**/
+// Human Channels
+broadcast chan pass_out, start_h_action, stop_h_action;
+
+/**
+*** CONSTANTS
+**/
+const double PI = 3.1415926535;
+const double INT16_MAX =  32767.0;
+
+
+// Human Fatigue Profiles [fatiguing rate, recovery rate]
+// MET = ln(1-epsilon)/(-lambda)
+const double YOUNG_HEALTHY[2] = {0.0005, 0.0005}; // approx. 1380s
+
+// Pre-Simulation
+/*
+const double YOUNG_SICK[2] = {0.001865, 0.005117}; 
+const double YOUNG_SICK_SIGMA[2] = {0.0000719, 0.000001};
+
+const double ELDERLY_HEALTHY[2] = {0.000409, 0.000450}; 
+const double ELDERLY_HEALTHY_SIGMA[2] = {0.000091, 0.000119}; 
+*/
+// Post-Simulation
+const double YOUNG_SICK[2] = {0.004, 0.003}; 
+const double YOUNG_SICK_SIGMA[2] = {0.0004, 0.0001};
+
+const double YOUNG_SICK_SIT[2] = {0.004, 0.005}; 
+const double YOUNG_SICK_SIGMA_SIT[2] = {0.0004, 0.0001};
+
+const double YOUNG_SICK_RUN[2] = {0.007, 0.003}; 
+const double YOUNG_SICK_SIGMA_RUN[2] = {0.0004, 0.0001};
+
+const double ELDERLY_HEALTHY[2] = {0.000553, 0.000302}; 
+const double ELDERLY_HEALTHY_SIGMA[2] = {0.004548, 0.000175};
+//
+const double ELDERLY_SICK[2] = {0.005, 0.004}; // approx. 350s 
+const double COVID_PATIENT[2] = {0.025, 0.001}; // approx. 280s
+
+double stdNormal () { // N(0, 1)
+    return sqrt(-2*ln(1-random(1))) * cos(2* PI*random(1));
+}
+
+double Normal(double mean , double stdDev) {
+    return mean + stdDev * stdNormal ();
+}
+
+/**
+*** VARIABLES
+**/
+
+// Human Mgmt
+int currH = 1;
+
+double humanFatigue[3] = {0.0, 0.0, 0.0};
+double humanPositionX[3] = {0.0, 0.0, 0.0};
+double humanPositionY[3] = {0.0, 0.0, 0.0};
+double humTheta[3] = {0.0, 0.0, 0.0};
+
+const double ORT_VALS[4] = {0.0, 90.0, 180.0, -90.0};
+
+/**
+* MISSION DEFINITION
+**/
+
+const int MAX_E = 15;
+
+bool force_exe = true;
+int force_act[MAX_E] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+
+// -&gt; DEFINE BOUND FOR QUERIES 
+// (you can refine it by examining simulations)
+const int TAU = 600;
+const int VERSION = 0;
+//</declaration>
+	<template>
+		<name>HFoll_1</name>
+		<parameter>int id, int v, int p_f, int p_fw, int start_from</parameter>
+		<declaration>clock t, F, Fp;
+clock tUpd;
+
+double lambda, mi;
+const double passout_th = 1.0;
+
+// Fatigue Sharing Parameters
+const int Tpoll = 1;
+
+bool ONCE_FTG = true;
+bool ONCE_POS = true;
+
+void updateF(double coeff, bool walking) { 
+    // if two human instances are the same person,
+    // residual conditions must be retrieved
+    if (ONCE_FTG &amp;&amp; start_from!=-1 &amp;&amp; currH==id) {
+        F = humanFatigue[start_from-1]; 
+        Fp = F;
+        humanFatigue[id-1] = F;
+    }
+    // same as ONCE_FTG
+    if (ONCE_POS &amp;&amp; start_from!=-1) {
+        humanPositionX[id-1] = humanPositionX[start_from-1];
+        humanPositionY[id-1] = humanPositionY[start_from-1];
+    } 
+ 
+    if(walking) {
+        humanFatigue[id-1] = 1-(1-humanFatigue[id-1])*exp(coeff*Tpoll); 
+    } else {
+        humanFatigue[id-1] = humanFatigue[id-1]*exp(coeff*Tpoll);
+    }
+
+    humanFatigue[id-1] = fmax(0, humanFatigue[id-1]);
+}
+
+double ort = 0.0;
+
+void updateP() {
+    double eps = 0.0;
+    if(ONCE_FTG &amp;&amp; ONCE_POS) {
+        ONCE_FTG = false;
+        ONCE_POS = false;
+    }
+
+    humanPositionX[id-1] = humanPositionX[id-1] + v*Tpoll*cos(ort*PI/180);
+    humanPositionY[id-1] = humanPositionY[id-1] + v*Tpoll*sin(ort*PI/180);
+}
+
+void get_rates() {
+    // unfortunately the switch case is not supported yet
+    if(p_f==1) {
+        lambda = YOUNG_HEALTHY[0]; mi = YOUNG_HEALTHY[1];
+    } else if(p_f==2) {
+        lambda = Normal(YOUNG_SICK[0], YOUNG_SICK_SIGMA[0]); 
+        mi = Normal(YOUNG_SICK[1], YOUNG_SICK_SIGMA[1]);
+    } else if(p_f==3) {
+        lambda = Normal(ELDERLY_HEALTHY[0], ELDERLY_HEALTHY_SIGMA[0]); 
+        mi = Normal(ELDERLY_HEALTHY[1], ELDERLY_HEALTHY_SIGMA[1]);
+    } else if(p_f==4) {
+        lambda = ELDERLY_SICK[0]; mi = ELDERLY_SICK[1];
+    } else if(p_f==5) {
+        lambda = COVID_PATIENT[0]; mi = COVID_PATIENT[1];
+    } else {
+        lambda = 0.005; mi = 0.005; //default values
+    }
+}
+
+void initHuman() {
+    t = 0;
+    tUpd = 0;
+    F = 0; 
+    Fp = 0;
+
+    humanPositionX[id-1] = 220.0;
+    humanPositionY[id-1] = 300.0;
+
+    get_rates();
+}
+		</declaration>
+        
+	</template>
+
+
+</nta>

@@ -1,3 +1,4 @@
+import configparser
 from typing import Set, List
 
 from it.polimi.powmodel_learning.mgrs.DistrMgr import KDE_Distr
@@ -5,7 +6,10 @@ from it.polimi.powmodel_learning.mgrs.DistrMgr import KDE_Distr
 LOCATION_FORMATTER = 'q_{}'
 FLOW_FORMATTER = 'f_{}'
 DISTR_FORMATTER = 'D_{}'
+config = configparser.ConfigParser()
+config.read('./resources/config/config.ini')
 
+CASE_STUDY = config['SUL CONFIGURATION']['CASE_STUDY']
 
 class Location:
     def __init__(self, l_id: int, name: str, flow: int, distr: int, initial: bool = False, committed: bool = False):
@@ -62,7 +66,9 @@ class Edge:
         start = [l for l in locations if l.name == start_name][0]
         dest = [l for l in locations if l.name == dest_name][0]
         sync_label = line.split('COLOR="#0067b0">')[1].replace('</FONT>>]\n', '')
-        if sync_label in ['i_0', 'l', 'u']:
+        if CASE_STUDY == "HRI":
+            sync = sync_label
+        elif sync_label in ['i_0', 'l', 'u']:
             sync = sync_label + '?'
         else:
             sync = 'm[' + sync_label.split('_')[1] + ']?'

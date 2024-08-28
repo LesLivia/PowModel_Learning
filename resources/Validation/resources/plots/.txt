@@ -1,0 +1,3 @@
+[Dot2Uppaal] (INFO)	Starting SHA .dot file parsing...
+[Dot2Uppaal] (DEBUG)	Found 24 locations.
+[Dot2Uppaal] (DEBUG)	Found 30 edges.

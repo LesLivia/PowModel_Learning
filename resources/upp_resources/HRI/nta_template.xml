@@ -1,0 +1,576 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>/**
+*** CHANNELS
+**/
+// Human Channels
+**CHANNELS**
+
+/**
+*** CONSTANTS
+**/
+const double PI = 3.1415926535;
+// const double INT16_MAX =  32767.0;
+
+
+// Human Fatigue Profiles [fatiguing rate, recovery rate]
+// MET = ln(1-epsilon)/(-lambda)
+const double YOUNG_HEALTHY[2] = {0.0005, 0.0005}; // approx. 1380s
+
+// Pre-Simulation
+/*
+const double YOUNG_SICK[2] = {0.001865, 0.005117}; 
+const double YOUNG_SICK_SIGMA[2] = {0.0000719, 0.000001};
+
+const double ELDERLY_HEALTHY[2] = {0.000409, 0.000450}; 
+const double ELDERLY_HEALTHY_SIGMA[2] = {0.000091, 0.000119}; 
+*/
+// Post-Simulation
+const double YOUNG_SICK[2] = {0.004, 0.003}; 
+const double YOUNG_SICK_SIGMA[2] = {0.0004, 0.0001};
+
+const double YOUNG_SICK_SIT[2] = {0.004, 0.005}; 
+const double YOUNG_SICK_SIGMA_SIT[2] = {0.0004, 0.0001};
+
+const double YOUNG_SICK_RUN[2] = {0.007, 0.003}; 
+const double YOUNG_SICK_SIGMA_RUN[2] = {0.0004, 0.0001};
+
+const double ELDERLY_HEALTHY[2] = {0.000553, 0.000302}; 
+const double ELDERLY_HEALTHY_SIGMA[2] = {0.004548, 0.000175};
+//
+const double ELDERLY_SICK[2] = {0.005, 0.004}; // approx. 350s 
+const double COVID_PATIENT[2] = {0.025, 0.001}; // approx. 280s
+
+double stdNormal () { // N(0, 1)
+    return sqrt(-2*ln(1-random(1))) * cos(2* PI*random(1));
+}
+
+double Normal(double mean , double stdDev) {
+    return mean + stdDev * stdNormal ();
+}
+
+/**
+*** VARIABLES
+**/
+
+// Human Mgmt
+int currH = 1;
+
+double humanFatigue[3] = {0.0, 0.0, 0.0};
+double humanPositionX[3] = {0.0, 0.0, 0.0};
+double humanPositionY[3] = {0.0, 0.0, 0.0};
+double humTheta[3] = {0.0, 0.0, 0.0};
+
+const double ORT_VALS[4] = {0.0, 90.0, 180.0, -90.0};
+
+/**
+* MISSION DEFINITION
+**/
+
+const int MAX_E = 15;
+
+bool force_exe = true;
+int force_act[MAX_E] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+
+// -&gt; DEFINE BOUND FOR QUERIES 
+// (you can refine it by examining simulations)
+const int TAU = 600;
+const int VERSION = 0;
+//</declaration>
+	<template>
+		<name>HFoll_1</name>
+		<parameter>int id, int v, int p_f, int p_fw, int start_from</parameter>
+		<declaration>clock t, F, Fp;
+clock tUpd;
+
+double lambda, mi;
+const double passout_th = 1.0;
+
+// Fatigue Sharing Parameters
+const int Tpoll = 1;
+
+bool ONCE_FTG = true;
+bool ONCE_POS = true;
+
+void updateF(double coeff, bool walking) { 
+    // if two human instances are the same person,
+    // residual conditions must be retrieved
+    if (ONCE_FTG &amp;&amp; start_from!=-1 &amp;&amp; currH==id) {
+        F = humanFatigue[start_from-1]; 
+        Fp = F;
+        humanFatigue[id-1] = F;
+    }
+    // same as ONCE_FTG
+    if (ONCE_POS &amp;&amp; start_from!=-1) {
+        humanPositionX[id-1] = humanPositionX[start_from-1];
+        humanPositionY[id-1] = humanPositionY[start_from-1];
+    } 
+ 
+    if(walking) {
+        humanFatigue[id-1] = 1-(1-humanFatigue[id-1])*exp(coeff*Tpoll); 
+    } else {
+        humanFatigue[id-1] = humanFatigue[id-1]*exp(coeff*Tpoll);
+    }
+
+    humanFatigue[id-1] = fmax(0, humanFatigue[id-1]);
+}
+
+double ort = 0.0;
+
+void updateP() {
+    double eps = 0.0;
+    if(ONCE_FTG &amp;&amp; ONCE_POS) {
+        ONCE_FTG = false;
+        ONCE_POS = false;
+    }
+
+    humanPositionX[id-1] = humanPositionX[id-1] + v*Tpoll*cos(ort*PI/180);
+    humanPositionY[id-1] = humanPositionY[id-1] + v*Tpoll*sin(ort*PI/180);
+}
+
+void get_rates() {
+    // unfortunately the switch case is not supported yet
+    if(p_f==1) {
+        lambda = YOUNG_HEALTHY[0]; mi = YOUNG_HEALTHY[1];
+    } else if(p_f==2) {
+        lambda = Normal(YOUNG_SICK[0], YOUNG_SICK_SIGMA[0]); 
+        mi = Normal(YOUNG_SICK[1], YOUNG_SICK_SIGMA[1]);
+    } else if(p_f==3) {
+        lambda = Normal(ELDERLY_HEALTHY[0], ELDERLY_HEALTHY_SIGMA[0]); 
+        mi = Normal(ELDERLY_HEALTHY[1], ELDERLY_HEALTHY_SIGMA[1]);
+    } else if(p_f==4) {
+        lambda = ELDERLY_SICK[0]; mi = ELDERLY_SICK[1];
+    } else if(p_f==5) {
+        lambda = COVID_PATIENT[0]; mi = COVID_PATIENT[1];
+    } else {
+        lambda = 0.005; mi = 0.005; //default values
+    }
+}
+
+void initHuman() {
+    t = 0;
+    tUpd = 0;
+    F = 0; 
+    Fp = 0;
+
+    humanPositionX[id-1] = 220.0;
+    humanPositionY[id-1] = 300.0;
+
+    get_rates();
+}</declaration>
+		<location id="id0" x="-390" y="-255">
+			<name x="-399" y="-246">idle</name>
+			<label kind="invariant" x="-399" y="-229">Fp'==0 &amp;&amp; tUpd&lt;=Tpoll
+&amp;&amp; F' == -Fp*mi*exp(-mi*t)</label>
+		</location>
+		<location id="id1" x="221" y="-255">
+			<name x="213" y="-289">busy</name>
+			<label kind="invariant" x="212" y="-340">Fp'==0 &amp;&amp; F &lt;= passout_th 
+&amp;&amp; F' == Fp*lambda*exp(-lambda*t)
+&amp;&amp; tUpd&lt;=Tpoll</label>
+		</location>
+		<location id="id2" x="-585" y="-254">
+			<name x="-628" y="-271">Init</name>
+			<committed/>
+		</location>
+		<location id="id3" x="374" y="-255">
+			<name x="391" y="-272">passed_out</name>
+			<label kind="invariant" x="391" y="-255">t' == 0 &amp;&amp;
+F' == 0</label>
+			<label kind="exponentialrate" x="366" y="-238">1</label>
+		</location>
+		<location id="id4" x="-391" y="-365">
+			<name x="-401" y="-399">p_1</name>
+			<committed/>
+		</location>
+		<location id="id5" x="221" y="-110">
+			<name x="204" y="-93">p_2</name>
+			<committed/>
+		</location>
+		<init ref="id2"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-170" y="-289">start_h_action?</label>
+			<label kind="assignment" x="-170" y="-272">t = 0,  tUpd=0, Fp=1-F, get_rates()</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-170" y="-204">stop_h_action?</label>
+			<label kind="assignment" x="-170" y="-187">t = 0, Fp=F, tUpd=0, get_rates()</label>
+			<nail x="119" y="-204"/>
+			<nail x="-263" y="-204"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id0"/>
+			<label kind="assignment" x="-382" y="-348">tUpd=0</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id1"/>
+			<label kind="assignment" x="187" y="-178">tUpd=0</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id5"/>
+			<label kind="guard" x="263" y="-170">tUpd&gt;=Tpoll</label>
+			<label kind="assignment" x="246" y="-153">updateF(-lambda, 1),
+updateP(), tUpd=0</label>
+			<nail x="255" y="-178"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-501" y="-340">tUpd&gt;=Tpoll</label>
+			<label kind="assignment" x="-501" y="-323">updateF(-mi, 0), 
+tUpd=0</label>
+			<nail x="-408" y="-306"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id3"/>
+			<label kind="guard" x="239" y="-272">F &gt;= passout_th</label>
+			<label kind="synchronisation" x="264" y="-255">pass_out!</label>
+			<label kind="assignment" x="315" y="-238">t = 0</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id3"/>
+			<nail x="349" y="-204"/>
+			<nail x="391" y="-204"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="assignment" x="-544" y="-246">initHuman()</label>
+		</transition>
+	</template>
+		<template>
+		<name>Fake_o</name>
+		<declaration>clock x;
+
+int th = 30;
+int curr = 0;
+int next; 
+
+void next_act() {
+    bool in_waiting_room, in_office;
+    in_waiting_room = humanPositionX[currH-1]&gt;=2000.0 &amp;&amp; humanPositionX[currH-1]&lt;=3000.0;
+    in_office = humanPositionX[currH-1]&lt;=2000.0 &amp;&amp; humanPositionY[currH-1]&gt;=1000.0 &amp;&amp; humanPositionY[currH-1]&lt;=3000.0;
+
+    if(force_exe &amp;&amp; curr!=MAX_E &amp;&amp; force_act[curr]!=-1) {
+        next = force_act[curr];        
+        curr++;
+    } else {
+        if(next==0 &amp;&amp; in_office) next = 3;
+        else if(next==0 &amp;&amp; !in_office) next = 1;
+        else if(next==1 || next == 3) {
+            next = fint(random(100));
+            if(next&gt;50.0) next = 0;
+            else next = 2;
+        } 
+        else if(next==2) next = 1;
+    }
+}
+
+bool can_fire() {
+    bool in_waiting_room, in_office;
+    in_waiting_room = humanPositionX[currH-1]&gt;=2000.0 &amp;&amp; humanPositionX[currH-1]&lt;=3000.0;
+    in_office = humanPositionX[currH-1]&lt;=2000.0 &amp;&amp; humanPositionY[currH-1]&gt;=1000.0 &amp;&amp; humanPositionY[currH-1]&lt;=3000.0;
+
+    if (next==0) return !in_waiting_room;
+    else if(next==2) return in_waiting_room;
+    else if(next==1) return !in_office;
+    else if(next==3) return in_office;
+    else return false;
+}</declaration>
+		<location id="id44" x="-867" y="-59">
+			<label kind="invariant" x="-892" y="-25">x&lt;=th</label>
+		</location>
+		<location id="id45" x="-867" y="-323">
+			<committed/>
+		</location>
+		<location id="id46" x="-620" y="-59">
+			<label kind="exponentialrate" x="-603" y="-68">1</label>
+		</location>
+		<location id="id47" x="-867" y="170">
+			<committed/>
+		</location>
+		<location id="id48" x="-1113" y="-136">
+			<label kind="exponentialrate" x="-1096" y="-153">1</label>
+		</location>
+		<location id="id49" x="-663" y="144">
+			<committed/>
+		</location>
+		<init ref="id47"/>
+		<transition>
+			<source ref="id49"/>
+			<target ref="id44"/>
+			<label kind="guard" x="-612" y="76">!can_fire()</label>
+			<label kind="assignment" x="-620" y="93">x=0</label>
+			<nail x="-612" y="85"/>
+		</transition>
+		<transition>
+			<source ref="id45"/>
+			<target ref="id44"/>
+			<label kind="guard" x="-858" y="-246">!can_fire()</label>
+			<label kind="assignment" x="-858" y="-229">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id49"/>
+			<target ref="id44"/>
+			<label kind="guard" x="-688" y="170">can_fire()</label>
+			<label kind="synchronisation" x="-705" y="187">start_h_action!</label>
+			<label kind="assignment" x="-714" y="204">x=0, next_act()</label>
+			<nail x="-714" y="195"/>
+		</transition>
+		<transition>
+			<source ref="id44"/>
+			<target ref="id49"/>
+			<label kind="guard" x="-765" y="59">x&gt;=th &amp;&amp;
+next==3</label>
+		</transition>
+		<transition>
+			<source ref="id48"/>
+			<target ref="id44"/>
+			<label kind="guard" x="-1181" y="-212">can_fire()</label>
+			<label kind="synchronisation" x="-1215" y="-195">stop_h_action!</label>
+			<label kind="assignment" x="-1224" y="-178">x=0, next_act()</label>
+			<nail x="-1113" y="-187"/>
+		</transition>
+		<transition>
+			<source ref="id44"/>
+			<target ref="id48"/>
+			<label kind="guard" x="-1190" y="-110">x&gt;=th &amp;&amp;
+next==2</label>
+			<nail x="-1113" y="-76"/>
+		</transition>
+		<transition>
+			<source ref="id47"/>
+			<target ref="id44"/>
+			<label kind="assignment" x="-858" y="110">x=0,
+next_act()</label>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id44"/>
+			<label kind="guard" x="-612" y="-42">can_fire()</label>
+			<label kind="synchronisation" x="-612" y="-25">stop_h_action!</label>
+			<label kind="assignment" x="-612" y="-8">x=0, next_act()</label>
+			<nail x="-620" y="-8"/>
+		</transition>
+		<transition>
+			<source ref="id44"/>
+			<target ref="id46"/>
+			<label kind="guard" x="-612" y="-119">x&gt;=th &amp;&amp;
+next==0</label>
+			<nail x="-620" y="-110"/>
+		</transition>
+		<transition>
+			<source ref="id44"/>
+			<target ref="id44"/>
+			<label kind="guard" x="-1020" y="-59">x&gt;=th &amp;&amp; 
+next==-1</label>
+			<label kind="assignment" x="-1054" y="-25">x=0, next_act()</label>
+			<nail x="-943" y="-59"/>
+			<nail x="-943" y="-8"/>
+		</transition>
+		<transition>
+			<source ref="id45"/>
+			<target ref="id44"/>
+			<label kind="guard" x="-799" y="-331">can_fire()</label>
+			<label kind="synchronisation" x="-807" y="-314">start_h_action!</label>
+			<label kind="assignment" x="-807" y="-297">x=0, next_act()</label>
+			<nail x="-807" y="-323"/>
+		</transition>
+		<transition>
+			<source ref="id44"/>
+			<target ref="id45"/>
+			<label kind="guard" x="-994" y="-340">x&gt;=th &amp;&amp;
+next==1</label>
+			<nail x="-926" y="-323"/>
+		</transition>
+	</template>
+	<template>
+    <name>Program</name>
+    <declaration>
+clock x;
+int th = 30;
+int curr = 0;
+int next; 
+
+void next_act() {
+if (curr == 0) {
+    next = 3; // u_3
+} else if (curr == 1) {
+    next = 2; // d_2
+} else if (curr == 2) {
+    next = 4; // u_4
+} else if (curr == 3) {
+    next = 5; // d_4
+} else if (curr == 4) {
+    next = 6; // u_2
+} else if (curr == 5) {
+    next = 7; // d_4
+} else {
+    next = -1;
+}
+    curr++;
+}
+
+bool can_fire() {
+    return next != -1;
+}
+    </declaration>
+    <location id="id_init" x="0" y="0">
+        <name x="-20" y="-20">Init</name>
+		<committed/>
+    </location>
+	<location id="id_pre" x="200" y="0">
+        <name x="80" y="-20">q_0</name>
+		<label kind="invariant" x="80" y="-40">x&lt;=10</label>
+    </location>
+    <location id="id_u3" x="200" y="0">
+        <name x="180" y="-20">q_1</name>
+		<label kind="invariant" x="180" y="-40">x&lt;=20</label>
+    </location>
+    <location id="id_d2" x="400" y="0">
+        <name x="380" y="-20">q_2</name>
+		<label kind="invariant" x="380" y="-40">x&lt;=30</label>
+    </location>
+    <location id="id_u4" x="600" y="0">
+        <name x="580" y="-20">q_3</name>
+		<label kind="invariant" x="580" y="-40">x&lt;=40</label>
+    </location>
+    <location id="id_d4_first" x="800" y="0">
+        <name x="780" y="-20">q_4</name>
+		<label kind="invariant" x="780" y="-40">x&lt;=50</label>
+    </location>
+    <location id="id_u2" x="1000" y="0">
+        <name x="980" y="-20">q_5</name>
+		<label kind="invariant" x="980" y="-40">x&lt;=60</label>
+    </location>
+    <location id="id_d4_second" x="1200" y="0">
+        <name x="1180" y="-20">q_6</name>
+    </location>
+    <location id="id_end" x="1400" y="0">
+        <name x="1380" y="-20">End</name>
+    </location>
+    <init ref="id_init"/>
+	<transition>
+        <source ref="id_init"/>
+        <target ref="id_pre"/>
+        <label kind="guard" x="100" y="20"></label>
+        <label kind="synchronisation" x="100" y="40"></label>
+        <label kind="assignment" x="100" y="60">x=0, next_act()</label>
+    </transition>
+    <transition>
+        <source ref="id_pre"/>
+        <target ref="id_u3"/>
+        <label kind="guard" x="200" y="20">can_fire() and x&gt;=10</label>
+        <label kind="synchronisation" x="200" y="40">u_3!</label>
+        <label kind="assignment" x="200" y="60">x=0, next_act()</label>
+    </transition>
+    <transition>
+        <source ref="id_u3"/>
+        <target ref="id_d2"/>
+        <label kind="guard" x="300" y="20">can_fire() and x&gt;=20</label>
+        <label kind="synchronisation" x="300" y="40">d_2!</label>
+        <label kind="assignment" x="300" y="60">x=0, next_act()</label>
+    </transition>
+    <transition>
+        <source ref="id_d2"/>
+        <target ref="id_u4"/>
+        <label kind="guard" x="500" y="20">can_fire() and x&gt;=30</label>
+        <label kind="synchronisation" x="500" y="40">u_4!</label>
+        <label kind="assignment" x="500" y="60">x=0, next_act()</label>
+    </transition>
+    <transition>
+        <source ref="id_u4"/>
+        <target ref="id_d4_first"/>
+        <label kind="guard" x="700" y="20">can_fire() and x&gt;=40</label>
+        <label kind="synchronisation" x="700" y="40">d_4!</label>
+        <label kind="assignment" x="700" y="60">x=0, next_act()</label>
+    </transition>
+    <transition>
+        <source ref="id_d4_first"/>
+        <target ref="id_u2"/>
+        <label kind="guard" x="900" y="20">can_fire() and x&gt;=50</label>
+        <label kind="synchronisation" x="900" y="40">u_2!</label>
+        <label kind="assignment" x="900" y="60">x=0, next_act()</label>
+    </transition>
+    <transition>
+        <source ref="id_u2"/>
+        <target ref="id_d4_second"/>
+        <label kind="guard" x="1100" y="20">can_fire() and x&gt;=60</label>
+        <label kind="synchronisation" x="1100" y="40">d_4!</label>
+        <label kind="assignment" x="1100" y="60">x=0, next_act()</label>
+    </transition>
+    <transition>
+        <source ref="id_d4_second"/>
+        <target ref="id_end"/>
+        <label kind="guard" x="1300" y="20">can_fire()</label>
+        <label kind="assignment" x="1300" y="40">x=0, next_act()</label>
+    </transition>
+</template>
+	**MACHINE**
+	<system>
+m = Machine(1,48,2,3,-1);
+program = Program();
+system m, program;
+    
+    </system>
+	<queries>
+		<query>
+			<formula>Pr[&lt;=5](&lt;&gt; humanPositionX[0] == 220.0)</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>Pr[&lt;=5](&lt;&gt; scs)</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>simulate[&lt;=TAU; 1]{m.Fp, humanFatigue[0]}</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>simulate[&lt;=TAU; 10]{m.mi}</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>simulate[&lt;=TAU; 10]{m.lambda}</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>simulate[&lt;=TAU; 10]{humanFatigue[currH-1],
+humanPositionX[currH-1], humanPositionY[currH-1],
+m.idle or m.p_1,
+m.busy or m.p_2,
+m.sit or m.p_3,
+m.run or m.p_4,
+m.in_waiting_room, m.from_office,
+m.ort, fake_o.next
+}</formula>
+			<comment>m_bis.F, m_bis.lambda, m_bis.mi,
+internalRobX, internalRobY,
+m_bis.idle or m_bis.p_1 or m_bis.p_2 or m_bis.c1 or m_bis.c2,
+m_bis.busy or m_bis.p_3 or m_bis.p_4 or m_bis.c3,
+robPositionX, robPositionY,
+rob.idle, rob.starting or rob.moving or rob.turning or rob.stopping or rob.c_1 or rob.c_2 or rob.c_3 or rob.c_4,
+</comment>
+		</query>
+		<query>
+			<formula>simulate[&lt;=TAU]{humanFatigue[currH-1]*10, 
+humanPositionX[currH-1]/100, humanPositionY[currH-1]/100, 
+served[0], served[1],
+dX/100, dY/100, currH,
+robPositionX/100, robPositionY/100, 
+fail, scs
+}</formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>

@@ -23,8 +23,10 @@ CASE_STUDY = config['SUL CONFIGURATION']['CASE_STUDY']
 CS_VERSION = config['SUL CONFIGURATION']['CS_VERSION']
 SAVE_PATH = config['MODEL GENERATION']['REPORT_SAVE_PATH']
 SHA_NAME = sys.argv[1].replace(CASE_STUDY + '_' + CS_VERSION, '')
-
 VALUES_PATH = 'resources/upp_results/histogram_values' + SHA_NAME + '.txt'
+
+#SHA_NAME = sys.argv[1]
+#VALUES_PATH = '/home/simo/Scrivania/Validation/resources/upp_results/'+ SHA_NAME + '_histogram_values' + '.txt'
 BINS = 25
 N = int(config['MODEL VERIFICATION']['N'])
 
@@ -72,6 +74,7 @@ def fit_distr(plot=False):
         values = f.readlines()
         values = [l.replace('\n', '') for l in values]
         distr_indexes = [i for i, l in enumerate(values) if l.__contains__('D')]
+        
         for i, index in enumerate(distr_indexes):
             try:
                 lines = values[index + 1:distr_indexes[i + 1]]

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>/**
+** CHANNELS
+**/
+
+// Spindle speed ranges
+const int N_W = 99; 
+chan l, u, i_0, m[N_W];
+
+/**
+** TRACE
+**/ 
+const int STOP = -1;
+const int LOAD = -2;
+const int UNLOAD = -3;
+
+// Number of events
+const int N_E = **N_EVENTS**
+const int TRACE[N_E] = **TRACE**
+const int TAU = **TIME_BOUND**
+
+/**
+** UTILITY FUNCTIONS
+**/
+
+double max(double x,double y) {
+    if(x&gt;=y) return x;
+    else return y;
+}
+</declaration>
+	<template>
+		<name x="5" y="5">Program</name>
+		<declaration>int next_i = -1;
+int next_e = -1;
+
+void get_next() {
+    next_i++;
+    if(next_i&gt;=N_E) return;
+    next_e = TRACE[next_i];
+}</declaration>
+		<location id="id0" x="212" y="85">
+			<name x="153" y="34">working</name>
+			<urgent/>
+		</location>
+		<location id="id1" x="0" y="85">
+			<name x="-10" y="51">_init_</name>
+			<committed/>
+		</location>
+		<location id="id2" x="408" y="85">
+			<name x="398" y="51">new_e</name>
+			<committed/>
+		</location>
+		<location id="id3" x="586" y="85">
+			<name x="576" y="51">COMPLETE</name>
+		</location>
+		<init ref="id1"/>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id3"/>
+			<label kind="guard" x="450" y="93">next_i&gt;=N_E</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="guard" x="212" y="153">next_i&lt;N_E &amp;&amp; next_e!=STOP &amp;&amp; next_e!=LOAD &amp;&amp; next_e!=UNLOAD</label>
+			<label kind="synchronisation" x="272" y="170">m[next_e]!</label>
+			<label kind="assignment" x="255" y="187">get_next()</label>
+			<nail x="306" y="153"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="guard" x="221" y="-8">next_i&lt;N_E &amp;&amp; next_e==STOP</label>
+			<label kind="synchronisation" x="297" y="-25">i_0!</label>
+			<label kind="assignment" x="263" y="-42">get_next()</label>
+			<nail x="306" y="0"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="guard" x="221" y="-8">next_i&lt;N_E &amp;&amp; next_e==LOAD</label>
+			<label kind="synchronisation" x="297" y="-25">l!</label>
+			<label kind="assignment" x="263" y="-42">get_next()</label>
+			<nail x="306" y="17"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="guard" x="221" y="-8">next_i&lt;N_E &amp;&amp; next_e==UNLOAD</label>
+			<label kind="synchronisation" x="297" y="-25">u!</label>
+			<label kind="assignment" x="263" y="-42">get_next()</label>
+			<nail x="306" y="34"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id2"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="assignment" x="42" y="85">get_next()</label>
+		</transition>
+	</template>
+**MACHINE**
+<system>
+p_1 = Program();
+m_1 = Machine();
+
+system p_1, m_1;
+</system>
+<queries>
+		<query>
+			<formula>simulate[&lt;=TAU]{m_1.w, m_1.P}</formula>
+			<comment></comment>
+		</query>
+</queries>
+</nta>

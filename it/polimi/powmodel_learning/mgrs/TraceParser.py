@@ -86,6 +86,7 @@ else:
     events.append(Event('', 'unload', 'u'))
 
     DRIVER_SIG = ['w', 'pr']
+    #DRIVER_SIG = ['w', 'pr', 'id', 'wd']
     DEFAULT_M = 0
     DEFAULT_DISTR = 0
 

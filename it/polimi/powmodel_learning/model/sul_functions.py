@@ -97,6 +97,7 @@ if CS_VERSION == 'REAL':
         pressure: SampledSignal = SampledSignal([], label='pr')
 
         with open(path) as csv_file:
+            #reader = csv.reader(csv_file, delimiter=';')
             reader = csv.reader(csv_file, delimiter=',')
 
             prev_p = 0
@@ -235,6 +236,12 @@ if CS_VERSION == 'REAL':
         avg_power = sum_power / len(segment)
         return avg_power
 elif CS_VERSION == 'MADE':
+    '''def is_chg_pt(curr, prev):
+        speed_cond = False
+        if (curr[1] == 1 and prev[1] == 0) or (curr[1] == -1 and prev[1] == 0) or (curr[1] == 1 and prev[1] == -1):
+            speed_cond = True
+        return speed_cond or curr[1] != prev[1]'''
+    
     def is_chg_pt(curr, prev):
         speed_cond = False
         if (curr[2] == 1 and prev[2] == 0) or (curr[2] == -1 and prev[2] == 0) or (curr[2] == 1 and prev[2] == -1):
@@ -345,7 +352,6 @@ elif CS_VERSION == 'MADE':
             reader = csv.DictReader(csv_file, delimiter=';')
 
             for i, row in enumerate(reader):
-
                 ts = parse_ts(row['_time'])
 
                 power.points.append(SignalPoint(ts, float(row['Total_power'])))

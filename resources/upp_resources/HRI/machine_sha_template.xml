@@ -1,0 +1,88 @@
+<template>
+    <name>Machine</name>
+    <parameter>int id, int v, int p_f, int p_fw, int start_from</parameter>
+    <declaration>
+clock t, F, Fp;
+clock tUpd;
+
+double lambda, mi;
+const double passout_th = 1.0;
+
+// Fatigue Sharing Parameters
+const int Tpoll = 1;
+
+bool ONCE_FTG = true;
+bool ONCE_POS = true;
+
+void updateF(double coeff, bool walking) { 
+    // if two human instances are the same person, THEN
+    // residual conditions must be retrieved
+    if (ONCE_FTG &amp;&amp; start_from!=-1 &amp;&amp; currH==id) {
+        F = humanFatigue[start_from-1]; 
+        Fp = F;
+        humanFatigue[id-1] = F;
+    }
+    // same as ONCE_FTG
+    if (ONCE_POS &amp;&amp; start_from!=-1) {
+        humanPositionX[id-1] = humanPositionX[start_from-1];
+        humanPositionY[id-1] = humanPositionY[start_from-1];
+    } 
+
+    if(walking) {
+        humanFatigue[id-1] = 1-(1-humanFatigue[id-1])*exp(coeff*Tpoll); 
+    } else {
+        humanFatigue[id-1] = humanFatigue[id-1]*exp(coeff*Tpoll);
+    }
+
+    humanFatigue[id-1] = fmax(0, humanFatigue[id-1]);
+}
+
+double ort = 0.0;
+
+void updateP() {
+    double eps = 0.0;
+    if(ONCE_FTG &amp;&amp; ONCE_POS) {
+        ONCE_FTG = false;
+        ONCE_POS = false;
+    }
+
+    humanPositionX[id-1] = humanPositionX[id-1] + v*Tpoll*cos(ort*PI/180);
+    humanPositionY[id-1] = humanPositionY[id-1] + v*Tpoll*sin(ort*PI/180);
+}
+
+void get_rates() {
+    // unfortunately the switch case is not supported yet
+    if(p_f==1) {
+        lambda = YOUNG_HEALTHY[0]; mi = YOUNG_HEALTHY[1];
+    } else if(p_f==2) {
+        lambda = Normal(YOUNG_SICK[0], YOUNG_SICK_SIGMA[0]); 
+        mi = Normal(YOUNG_SICK[1], YOUNG_SICK_SIGMA[1]);
+    } else if(p_f==3) {
+        lambda = Normal(ELDERLY_HEALTHY[0], ELDERLY_HEALTHY_SIGMA[0]); 
+        mi = Normal(ELDERLY_HEALTHY[1], ELDERLY_HEALTHY_SIGMA[1]);
+    } else if(p_f==4) {
+        lambda = ELDERLY_SICK[0]; mi = ELDERLY_SICK[1];
+    } else if(p_f==5) {
+        lambda = COVID_PATIENT[0]; mi = COVID_PATIENT[1];
+    } else {
+        lambda = 0.005; mi = 0.005; //default values
+    }
+}
+
+void initHuman() {
+    t = 0;
+    tUpd = 0;
+    F = 0; 
+    Fp = 0;
+
+    humanPositionX[id-1] = 220.0;
+    humanPositionY[id-1] = 300.0;
+
+    get_rates();
+}
+    </declaration>
+    **LOCATIONS**
+    <init ref="**INIT_ID**"/>
+    **INIT_TRANSITIONS**
+    **TRANSITIONS**
+</template>
